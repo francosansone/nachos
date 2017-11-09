@@ -202,6 +202,7 @@ ExceptionHandler(ExceptionType which)
             }
 
             case SC_Exec: {
+                DEBUG('t', "SYSCALL EXEC\n");
                 ReadStringFromUser(r4, name, 12);
                 OpenFile *f = fileSystem -> Open(name);
                 AddressSpace *tas = new AddressSpace(f);

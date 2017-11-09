@@ -19,12 +19,13 @@ main(void)
     Create("probando.txt");
     char buff[128];
     OpenFileId o = Open("test.txt");
-    OpenFileId p = Open("probando.txt");
     Write("Hello world\n",12,o);
     Write("Hello world\n",12,1);
     Close(o);
     o = Open("test.txt");
     Read(buff, 12,o);
+    Close(o);
+    OpenFileId p = Open("probando.txt");
     Write(buff, 12,p);
 //    Close(o);
 //    Close(p);

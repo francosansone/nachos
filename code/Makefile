@@ -25,7 +25,7 @@ all:
 clean:
 	$(MAKE) -C bin clean
 	$(MAKE) -C test clean
-	$(SH) -c "rm -f */{core,nachos,DISK,*.o,swtch.s}"
+	$(SH) -c "rm -f */{core,nachos,DISK,*.o,swtch.s,*.txt}"
 
 print:
 	$(SH) -c '$(LPR) Makefile* */Makefile                              \

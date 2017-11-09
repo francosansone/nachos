@@ -19,7 +19,9 @@
 #include "address_space.hh"
 #include "bin/noff.h"
 #include "threads/system.hh"
+#include "bitmap.hh"
 
+BitMap *bitmap = new BitMap(128);
 
 /// Do little endian to big endian conversion on the bytes in the object file
 /// header, in case the file was generated on a little endian machine, and we
@@ -85,7 +87,8 @@ AddressSpace::AddressSpace(OpenFile *executable)
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
-        pageTable[i].physicalPage = i;
+        pageTable[i].physicalPage = bitmap -> Find();
+        ASSERT(pageTable[i].physicalPage != -1);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
