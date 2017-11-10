@@ -206,7 +206,7 @@ ExceptionHandler(ExceptionType which)
                 ReadStringFromUser(r4, name, 12);
                 OpenFile *f = fileSystem -> Open(name);
                 AddressSpace *tas = new AddressSpace(f);
-                Thread *t = new Thread(strdup(name), true); //ver tema prioridades
+                Thread *t = new Thread(strdup(name), true); //ver como tratar args = NULL
                 t -> space = tas;
                 SpaceId pid = t -> getPid();
                 //leer args a kernel
