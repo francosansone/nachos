@@ -57,8 +57,7 @@ extern void Cleanup();
 /// context switch), we set a flag so that once the interrupt handler is
 /// done, it will appear as if the interrupted thread called Yield at the
 /// point it is was interrupted.
-///
-/// * `dummy` is because every interrupt handler takes one argument, whether
+
 ///   it needs it or not.
 static void
 TimerInterruptHandler(void *dummy)
@@ -152,8 +151,8 @@ Initialize(int argc, char **argv)
     stats = new Statistics();     // Collect statistics.
     interrupt = new Interrupt;    // Start up interrupt handling.
     scheduler = new Scheduler();  // Initialize the ready queue.
-    if (randomYield)              // Start the timer (if needed).
-        timer = new Timer(TimerInterruptHandler, 0, randomYield);
+    //if (randomYield)              // Start the timer (if needed).
+    timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;
 

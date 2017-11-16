@@ -211,8 +211,8 @@ ExceptionHandler(ExceptionType which)
                 SpaceId pid = t -> getPid();
                 //leer args a kernel
                 char **args = SaveArgs(r5); // Leo los argumentos
-                WriteArgs(args);            // Escribo en el stack de user
-                t->Fork(StartProc, name);
+                //WriteArgs(args);            // Escribo en el stack de user
+                t->Fork(StartProc, args);
                 machine -> WriteRegister(2, pid); //Retorno el Pid del nuevo thread
                 IncPC();
                 break;
@@ -282,10 +282,12 @@ WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount)
 }
 
 void
-StartProc(void *args)
+StartProc(void *arg)
 {
+    char **args = (char**)arg;
     currentThread-> space -> InitRegisters();  // Set the initial register values.
     currentThread -> space -> RestoreState();   // Load page table register.
+    WriteArgs(args)
 
     machine -> Run();
 }

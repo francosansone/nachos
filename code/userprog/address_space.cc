@@ -21,7 +21,7 @@
 #include "threads/system.hh"
 #include "bitmap.hh"
 
-BitMap *bitmap = new BitMap(128);
+BitMap *bitmap = new BitMap(128); //cantidad de paginas
 
 /// Do little endian to big endian conversion on the bytes in the object file
 /// header, in case the file was generated on a little endian machine, and we
@@ -59,6 +59,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
 {
     NoffHeader noffH;
     unsigned   size;
+    unsigned size1;
 
     executable->ReadAt((char *) &noffH, sizeof noffH, 0);
     if (noffH.noffMagic != NOFFMAGIC &&
@@ -84,30 +85,51 @@ AddressSpace::AddressSpace(OpenFile *executable)
     // First, set up the translation.
 
     pageTable = new TranslationEntry[numPages];
+
+
+
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
+          // Cambiamos para cargar mas de un programa en mainMemory
         pageTable[i].physicalPage = bitmap -> Find();
         ASSERT(pageTable[i].physicalPage != -1);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
-          // If the code segment was entirely on a separate page, we could
+        memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE); //Dejo de hacerlo una vez que comienzo a cargar         
+       // If the code segment was entirely on a separate page, we could
           // set its pages to be read-only.
     }
 
+    
     // Zero out the entire address space, to zero the unitialized data
     // segment and the stack segment.
-    memset(machine->mainMemory, 0, size);
+
+//    varios programas en memoria
+    
 
     // Then, copy in the code and data segments into memory.
+
+    for (int i=0; i<noffH.code.size; i++) {
+        char c = executable->ReadAt(..., ..., ...);
+        int virutalAddr = ... //DIRECCION virtual correspondiente a ese byte de codigo
+        //ahora desarmo la direccion virtual
+        int virtualPageNum = ....    //numero de pagina de la direccion
+        int offset = ...             //offset de la direccion
+        int physicalPageNum = ...    //pagina fisica de la pagina virtual
+
+        machine->mainMemory[] = --.... //escribo en la pagina fisica correspondiente
+    }
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
               noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-                           noffH.code.size, noffH.code.inFileAddr);
+
+        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
     }
+
+    //aqui hacer lo mismo que con el segmento de codigo
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
               noffH.initData.virtualAddr, noffH.initData.size);
