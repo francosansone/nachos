@@ -21,8 +21,8 @@
 #include "threads/system.hh"
 #include "bitmap.hh"
 
-#define BITS_OFFSET 6
-#define OR_OFFSET 127
+#define BITS_OFFSET 7
+#define OR_OFFSET 127 //128 direcciones por pagina
 
 BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
@@ -111,8 +111,9 @@ AddressSpace::AddressSpace(OpenFile *executable)
         int virtualAddr = noffH.code.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
         //ahora desgloso la direccion virtual
         int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
+//        printf("virtualPageNum: %d\n",virtualPageNum);
         int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
-        int physicalPageNum = pageTable[virtualPageNum].physicalPage + offset;    //pagina fisica de la pagina virtual
+        int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
 
         DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
         machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
@@ -133,7 +134,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
     //ahora desgloso la direccion virtual
     int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
     int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
-    int physicalPageNum = pageTable[virtualPageNum].physicalPage + offset;    //pagina fisica de la pagina virtual
+    int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
 
     machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspon
     }
