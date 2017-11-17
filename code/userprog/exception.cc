@@ -47,6 +47,8 @@
 /// * `which` is the kind of exception.  The list of possible exceptions is
 ///   in `machine.hh`.
 
+
+
 void StartProc(void *args);
 
 void ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount);
@@ -287,7 +289,7 @@ StartProc(void *arg)
     char **args = (char**)arg;
     currentThread-> space -> InitRegisters();  // Set the initial register values.
     currentThread -> space -> RestoreState();   // Load page table register.
-    WriteArgs(args)
+    WriteArgs(args);
 
     machine -> Run();
 }
