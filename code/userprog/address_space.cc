@@ -21,8 +21,8 @@
 #include "threads/system.hh"
 #include "bitmap.hh"
 
-#define BITS_OFFSET 7
-#define OR_OFFSET 4294967040
+#define BITS_OFFSET 6
+#define OR_OFFSET 127
 
 BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
@@ -92,7 +92,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
           // Cambiamos para cargar mas de un programa en mainMemory
-        pageTable[i].physicalPage = i;//bitmap -> Find();
+        pageTable[i].physicalPage = bitmap -> Find();
         ASSERT(pageTable[i].physicalPage != -1);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
@@ -104,7 +104,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
     }  
 
     // Then, copy in the code and data segments into memory.
-    DEBUG('a', "Initializing code segment\n");
+    DEBUG('a', "Initializing code segment, size %d\n", noffH.code.size);
     for (int i=0; i<noffH.code.size; i++) {
         char c;
         executable->ReadAt(&c, 1, noffH.code.inFileAddr + i); //leo de 1 byte el seg de codigo
@@ -114,6 +114,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
         int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
         int physicalPageNum = pageTable[virtualPageNum].physicalPage + offset;    //pagina fisica de la pagina virtual
 
+        DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
         machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
     }
 /*    if (noffH.code.size > 0) {
@@ -123,14 +124,15 @@ AddressSpace::AddressSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
     }*/
 
-
+    DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
     for (int i=0; i<noffH.initData.size; i++) {
+    DEBUG('a',"Leo el bloque de datos\n");
     char c;
     executable->ReadAt(&c, 1, noffH.initData.inFileAddr + i); //leo de 1 byte el seg de codigo
     int virtualAddr = noffH.initData.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
     //ahora desgloso la direccion virtual
     int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
-    int offset = virtualAddr & BITS_OFFSET;             //offset de la direccion
+    int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
     int physicalPageNum = pageTable[virtualPageNum].physicalPage + offset;    //pagina fisica de la pagina virtual
 
     machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspon
