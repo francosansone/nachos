@@ -22,6 +22,7 @@
 #include "bitmap.hh"
 
 #define BITS_OFFSET 7
+#define OR_OFFSET 4294967040
 
 BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
@@ -110,7 +111,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
         int virtualAddr = noffH.code.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
         //ahora desgloso la direccion virtual
         int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
-        int offset = virtualAddr & BITS_OFFSET;             //offset de la direccion
+        int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
         int physicalPageNum = pageTable[virtualPageNum].physicalPage + offset;    //pagina fisica de la pagina virtual
 
         machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
