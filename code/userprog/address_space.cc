@@ -93,14 +93,13 @@ AddressSpace::AddressSpace(OpenFile *executable)
           // For now, virtual page number = physical page number.
           // Cambiamos para cargar mas de un programa en mainMemory
         pageTable[i].physicalPage = bitmap -> Find();
-        ASSERT(pageTable[i].physicalPage != -1);
+        ASSERT((int)pageTable[i].physicalPage != -1);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
-        memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);          
-       // If the code segment was entirely on a separate page, we could
-          // set its pages to be read-only.
+        //memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);          
+        bzero(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]),PAGE_SIZE);
     }  
 
     // Then, copy in the code and data segments into memory.
@@ -110,43 +109,27 @@ AddressSpace::AddressSpace(OpenFile *executable)
         executable->ReadAt(&c, 1, noffH.code.inFileAddr + i); //leo de 1 byte el seg de codigo
         int virtualAddr = noffH.code.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
         //ahora desgloso la direccion virtual
-        int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
-//        printf("virtualPageNum: %d\n",virtualPageNum);
-        int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
+        int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
+        int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
         int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
-
         DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
         machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
     }
-/*    if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
-              noffH.code.virtualAddr, noffH.code.size);
-
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
-    }*/
+    
 
     DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
     for (int i=0; i<noffH.initData.size; i++) {
-    DEBUG('a',"Leo el bloque de datos\n");
-    char c;
-    executable->ReadAt(&c, 1, noffH.initData.inFileAddr + i); //leo de 1 byte el seg de codigo
-    int virtualAddr = noffH.initData.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
-    //ahora desgloso la direccion virtual
-    int virtualPageNum = virtualAddr >> BITS_OFFSET;    //numero de pagina de la direccion
-    int offset = virtualAddr & OR_OFFSET;             //offset de la direccion
-    int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
-
-    machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspon
+        char c;
+        executable->ReadAt(&c, 1, noffH.initData.inFileAddr + i); //leo de 1 byte el seg de codigo
+        int virtualAddr = noffH.initData.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
+        //ahora desgloso la direccion virtual
+        int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
+        int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
+        int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE);    //pagina fisica de la pagina virtual
+        int physicalAddrNum = physicalPageNum + offset;  //direccion fisica
+        DEBUG('a',"Leo el bloque de datos %d\n", physicalAddrNum);
+        machine->mainMemory[physicalAddrNum] = c; //escribo en la pagina fisica correspon
     }
-
-/*    //aqui hacer lo mismo que con el segmento de codigo
-    if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
-              noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(
-          &(machine->mainMemory[noffH.initData.virtualAddr]),
-          noffH.initData.size, noffH.initData.inFileAddr);
-    }*/
 
 }
 
