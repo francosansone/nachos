@@ -4,6 +4,9 @@
 int main(){
     Create("Holanda.txt");
     Write("Hola Mundo", 13, 1);
-    Exec("filetest");
+    int pid = Exec("filetest");
+    int ret = Join(pid);
+    Create("Holan.txt");
+    Halt();
     Exit(0);
 }    

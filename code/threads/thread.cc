@@ -27,7 +27,7 @@ static int ContPid = 0;
 
 
 //Lista global de pares (thread, pid) creados
-List<ThreadTable> *threads;
+List<ThreadTable> *threads = new List<ThreadTable>;
 
 
 //Funciones sobre la lista threads
@@ -88,7 +88,7 @@ Thread::Thread(const char* threadName, bool join, int pr)
     Pid = ContPid;
     ContPid++;
     DEBUG('t',"Creado el hilo %d\n", Pid);
-    threads = new List <ThreadTable>;
+    //threads = new List <ThreadTable>;
 #ifdef USER_PROGRAM
     space    = NULL;
 #endif
@@ -107,7 +107,7 @@ Thread::~Thread()
     DEBUG('t', "Deleting thread \"%s\"\n",name );
 
     ASSERT(this != currentThread);
-    //delete port; no se realiza
+    delete port; //no se realiza
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, STACK_SIZE * sizeof *stack);
     delete files;
@@ -192,7 +192,7 @@ Thread::Finish(int r)
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
     if(ToJoin){
         DEBUG('s', "Envia el valor de retorno (por defecto 0)\n");
-        port -> Send(r); //desbloquea al join
+//        port -> Send(r); //desbloquea al join
     }
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.

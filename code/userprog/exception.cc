@@ -113,8 +113,7 @@ ExceptionHandler(ExceptionType which)
                 if(r6 == 0){
                     char temp = buff[0];
                     for(int i = 0; temp != '\n'; i++){
-                        temp = synchConsole -> ReadChar();
-                        buff[i] = temp;
+                        buff[i] = synchConsole -> ReadChar();
                         read = i;
                     }
                         WriteBufferToUser(buff, r4, r5);
@@ -211,12 +210,13 @@ ExceptionHandler(ExceptionType which)
                 Thread *t = new Thread(strdup(name), true); //ver como tratar args = NULL
                 t -> space = tas;
                 SpaceId pid = t -> getPid();
+                DEBUG('t', "El hilo %d ha sido creado\n", pid);
                 //leer args a kernel
                 //char **args = SaveArgs(r5); // Leo los argumentos
                 //WriteArgs(args);            // Escribo en el stack de user
-                t->Fork(StartProc, name, 5);
+                t->Fork(StartProc, name);
                 machine -> WriteRegister(2, pid); //Retorno el Pid del nuevo thread
-                IncPC();
+                //IncPC();
                 break;
             }
         }       
@@ -286,7 +286,7 @@ WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount)
 void
 StartProc(void *arg)
 {
-    char **args = (char**)arg;
+    //char **args = (char**)arg;
     currentThread-> space -> InitRegisters();  // Set the initial register values.
     currentThread -> space -> RestoreState();   // Load page table register.
     //WriteArgs(args);

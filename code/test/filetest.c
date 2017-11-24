@@ -30,6 +30,5 @@ main(void)
 //    Close(o);
 //    Close(p);
     Exit(0);
-    Halt();
     // Not reached.
 }
