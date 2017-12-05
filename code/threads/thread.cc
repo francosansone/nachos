@@ -45,7 +45,7 @@ removeThread(SpaceId pid)
     while(!threads -> IsEmpty()) {
         ThreadTable temp = threads -> Remove();
         if(temp.Pid != pid)
-            threads -> Append(temp);
+            newthreads -> Append(temp);
     }
     threads = newthreads;
 }
@@ -87,6 +87,8 @@ Thread::Thread(const char* threadName, bool join, int pr)
     cont = 2;           //contador de archivos abiertos
     Pid = ContPid;
     ContPid++;
+    ThreadTable tt = {Pid, this};
+    addThread(tt);
     DEBUG('t',"Creado el hilo %d\n", Pid);
     //threads = new List <ThreadTable>;
 #ifdef USER_PROGRAM
@@ -107,7 +109,7 @@ Thread::~Thread()
     DEBUG('t', "Deleting thread \"%s\"\n",name );
 
     ASSERT(this != currentThread);
-    delete port; //no se realiza
+    ///delete port; //no se realiza
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, STACK_SIZE * sizeof *stack);
     delete files;
@@ -192,7 +194,7 @@ Thread::Finish(int r)
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
     if(ToJoin){
         DEBUG('s', "Envia el valor de retorno (por defecto 0)\n");
-//        port -> Send(r); //desbloquea al join
+        port -> Send(r); //desbloquea al join
     }
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.

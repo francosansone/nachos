@@ -194,7 +194,7 @@ Condition::Wait()
     CopyLock -> Release();         
     sem -> P(); 
     CopyLock -> Acquire();
-    delete sem;
+    //delete sem;
 
 }
 

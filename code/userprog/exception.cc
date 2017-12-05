@@ -195,6 +195,7 @@ ExceptionHandler(ExceptionType which)
             case SC_Join: {
                 int ret;
                 Thread *t = getThread(r4);
+                DEBUG('q', "Haciendo join sobre el hilo %d, thread=%p\n", r4, t);
                 t -> Join(&ret); //obtengo el hilo y hago el join
                 machine -> WriteRegister(2, ret);
                 removeThread(r4); //lo elimino de la lista
@@ -210,13 +211,13 @@ ExceptionHandler(ExceptionType which)
                 Thread *t = new Thread(strdup(name), true); //ver como tratar args = NULL
                 t -> space = tas;
                 SpaceId pid = t -> getPid();
-                DEBUG('t', "El hilo %d ha sido creado\n", pid);
+                DEBUG('q', "El hilo %d ha sido creado\n", pid);
                 //leer args a kernel
                 //char **args = SaveArgs(r5); // Leo los argumentos
                 //WriteArgs(args);            // Escribo en el stack de user
                 t->Fork(StartProc, name);
                 machine -> WriteRegister(2, pid); //Retorno el Pid del nuevo thread
-                //IncPC();
+                IncPC();
                 break;
             }
         }       
