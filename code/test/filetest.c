@@ -13,13 +13,14 @@
 
 
 int
-main(void)
+main(int argc, char **argv)
 {
+    const char *arg1 = argv[0];
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
     OpenFileId o = Open("test.txt");
-    Write("Hello world\n",12,o);
+    Write(arg1,4,o);
     Write("Hello world\n",12,1);
     Close(o);
     o = Open("test.txt");
