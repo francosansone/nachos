@@ -1,0 +1,13 @@
+# ignore .o and .coff files
+*.o
+*.coff
+
+#and executables
+creat
+filetest
+halt
+matmult
+pseudoshell
+shell
+sort
+tiny_shell
