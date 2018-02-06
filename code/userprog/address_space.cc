@@ -93,14 +93,15 @@ AddressSpace::AddressSpace(OpenFile *executable)
           // For now, virtual page number = physical page number.
           // Cambiamos para cargar mas de un programa en mainMemory
         pageTable[i].physicalPage = bitmap -> Find();
+        DEBUG('a', "%d ", (int)pageTable[i].physicalPage);
         ASSERT((int)pageTable[i].physicalPage != -1);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
-        //memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);          
+        //memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);
         bzero(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]),PAGE_SIZE);
-    }  
+    }
 
     // Then, copy in the code and data segments into memory.
     DEBUG('a', "Initializing code segment, size %d\n", noffH.code.size);
@@ -115,7 +116,7 @@ AddressSpace::AddressSpace(OpenFile *executable)
         DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
         machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
     }
-    
+
 
     DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
     for (int i=0; i<noffH.initData.size; i++) {

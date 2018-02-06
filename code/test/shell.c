@@ -4,6 +4,7 @@
 #define MAX_LINE_SIZE  60
 #define MAX_ARG_COUNT  32
 #define ARG_SEPARATOR  ' '
+#define ARG_CONSTRUCTOR '"'
 
 #define NULL  ((void *) 0)
 
@@ -13,8 +14,13 @@ strlen(const char *s)
     // TO DO: how to make sure that `s` is not `NULL`?
 
     unsigned i;
-    for (i = 0; s[i] != '\0'; i++);
-    return i;
+    if(s != NULL){
+      for (i = 0; s[i] != '\0'; i++);
+      return i;
+    }
+    else{
+      return -1;
+    }
 }
 
 static inline void
@@ -25,16 +31,29 @@ WritePrompt(OpenFileId output)
 }
 
 static inline void
+WriteDebug(const char *description, OpenFileId output)
+{
+    static const char PREFIX[] = "Debug: ";
+    static const char SUFFIX[] = "\n";
+    if(description != NULL){
+      Write(PREFIX, sizeof PREFIX - 1, output);
+      Write(description, strlen(description), output);
+      Write(SUFFIX, sizeof SUFFIX - 1, output);
+    }
+}
+
+static inline void
 WriteError(const char *description, OpenFileId output)
 {
     // TO DO: how to make sure that `description` is not `NULL`?
 
     static const char PREFIX[] = "Error: ";
     static const char SUFFIX[] = "\n";
-
-    Write(PREFIX, sizeof PREFIX - 1, output);
-    Write(description, strlen(description), output);
-    Write(SUFFIX, sizeof SUFFIX - 1, output);
+    if(description != NULL){
+      Write(PREFIX, sizeof PREFIX - 1, output);
+      Write(description, strlen(description), output);
+      Write(SUFFIX, sizeof SUFFIX - 1, output);
+    }
 }
 
 static unsigned
@@ -43,16 +62,19 @@ ReadLine(char *buffer, unsigned size, OpenFileId input)
     // TO DO: how to make sure that `buffer` is not `NULL`?
 
     unsigned i;
-
-    for (i = 0; i < 5; i++) {
-        Read(&buffer[i], 1, input);
-        // TO DO: what happens when the input ends?
-        if (buffer[i] == '\n') {
-            buffer[i] = '\0';
-            break;
-        }
+    if(buffer != NULL){
+      for (i = 0; i < MAX_LINE_SIZE; i++) {
+          Read(&buffer[i], 1, input);
+          // TO DO: what happens when the input ends?
+          //WriteDebug("Leimos bastante", 1);
+          if ((buffer[i] == '\0') || (buffer[i] == '\n')) {
+              buffer[i] = '\0';
+              break;
+          }
+      }
+      WriteDebug(buffer, 1);
+      return i;
     }
-    return i;
 }
 
 static int
@@ -65,34 +87,42 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
     //            given that we are in C and not C++, it is convenient to
     //            include `stdbool.h`.
 
-    unsigned argCount;
+    if((line != NULL) && (argv != NULL) && (argvSize <= MAX_ARG_COUNT)) {
+      unsigned argCount;
 
-    argv[0] = line;
-    argCount = 1;
+      //argv[0] = line;
+      WritePrompt(1);
 
-    // Traverse the whole line and replace spaces between arguments by null
-    // characters, so as to be able to treat each argument as a standalone
-    // string.
-    //
-    // TO DO: what happens if there are two consecutive spaces?, and what
-    //        about spaces at the beginning of the line?, and at the end?
-    //
-    // TO DO: what if the user wants to include a space as part of an
-    //        argument?
-    for (unsigned i = 0; line[i] != '\0'; i++)
-        if (line[i] == ARG_SEPARATOR) {
-            if (argCount == argvSize - 1)
-                // The maximum of allowed arguments is exceeded, and
-                // therefore the size of `argv` is too.  Note that 1 is
-                // decreased in order to leave space for the NULL at the end.
-                return 0;
-            line[i] = '\0';
-            argv[argCount] = &line[i + 1];
+      argCount = 0;
+
+      // Traverse the whole line and replace spaces between arguments by null
+      // characters, so as to be able to treat each argument as a standalone
+      // string.
+      //
+      // TO DO: what happens if there are two consecutive spaces?, and what
+      //        about spaces at the beginning of the line?, and at the end?
+      //
+      // TO DO: what if the user wants to include a space as part of an
+      //        argument?
+      for (unsigned i = 0; line[i] != '\0' && i < MAX_LINE_SIZE; i++)
+          if (line[i] == ARG_CONSTRUCTOR) {
+            argv[argCount] = &line[i+1];
+            i++;
+              /*if (argCount == argvSize - 1)
+                  // The maximum of allowed arguments is exceeded, and
+                  // therefore the size of `argv` is too.  Note that 1 is
+                  // decreased in order to leave space for the NULL at the end.
+                  return 0;
+              line[i] = '\0';
+              argv[argCount] = &line[i + 1];*/
+            while(line[i] != ARG_CONSTRUCTOR)
+              i++;
             argCount++;
-        }
+          }
 
-    argv[argCount] = NULL;
-    return 1;
+      argv[argCount] = NULL;
+      return 1;
+    }
 }
 
 int
@@ -108,14 +138,12 @@ main(void)
         const unsigned lineSize = ReadLine(line, 5, INPUT);
         if (lineSize == 0)
             continue;
-
-        WritePrompt(OUTPUT);
         if (PrepareArguments(line, argv, MAX_ARG_COUNT) == 0) {
             WriteError("too many arguments.", OUTPUT);
             continue;
         }
         // Comment and uncomment according to whether command line arguments
-        WritePrompt(OUTPUT);
+
         // are given in the system call or not.
         //const SpaceId newProc = Exec(line);
         const SpaceId newProc = Exec(line, argv);

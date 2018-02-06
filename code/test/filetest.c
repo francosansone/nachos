@@ -15,21 +15,22 @@
 int
 main(int argc, char **argv)
 {
-    const char *arg1 = argv[0];
+    //const char *arg1 = argv[0];
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
     OpenFileId o = Open("test.txt");
-    Write(arg1,4,o);
+    Write("arg1",4,o);
     Write("Hello world\n",12,1);
     Close(o);
     o = Open("test.txt");
     Read(buff, 12,o);
     Close(o);
     OpenFileId p = Open("probando.txt");
-    Write(buff, 12,p);
+    Write(buff, 4,p);
 //    Close(o);
 //    Close(p);
     Exit(0);
+
     // Not reached.
 }

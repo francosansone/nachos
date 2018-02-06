@@ -1,3 +1,0 @@
-# ignore .o and .coff files
-*.o
-*.coff

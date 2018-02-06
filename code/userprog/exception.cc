@@ -84,7 +84,7 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
     char name[128];
     char buff[128];
-    int r4 = machine -> ReadRegister(4);//defino esto por proligidad
+    int r4 = machine -> ReadRegister(4);//defino esto por prolijidad
     int r5 = machine -> ReadRegister(5);
     int r6 = machine -> ReadRegister(6);
     if (which == SYSCALL_EXCEPTION) {
@@ -112,7 +112,8 @@ ExceptionHandler(ExceptionType which)
                 }
                 if(r6 == 0){
                     char temp = buff[0];
-                    for(int i = 0; temp != '\n'; i++){
+                    for(int i = 0; i < r5; i++){
+                        DEBUG('f', "READING!\n");
                         buff[i] = synchConsole -> ReadChar();
                         read = i;
                     }
@@ -123,7 +124,7 @@ ExceptionHandler(ExceptionType which)
                     OpenFile *f1= currentThread -> getFile(r6);
                     if(f1 == NULL){
                         DEBUG('f',"Bad arguments\n");
-                        ASSERT(false);                    
+                        ASSERT(false);
                     }
                     read = f1 -> Read(buff, r5);
                     WriteBufferToUser(buff, r4, read);
@@ -219,7 +220,7 @@ ExceptionHandler(ExceptionType which)
                 IncPC();
                 break;
             }
-        }       
+        }
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(false);
@@ -236,10 +237,10 @@ ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount)
             DEBUG('f', "fallo de pagina\n");
             ASSERT(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff))
         }
-        outString[i] = buff; 
+        outString[i] = buff;
         if(outString[i] == '\0')
             return;
-     
+
     }
 }
 
@@ -254,12 +255,12 @@ ReadBufferFromUser(int userAddress, char *outBuffer, unsigned byteCount)
                   //lectura fallida
         outBuffer[i] = buff;
     }
-}   
-    
+}
+
 void
 WriteStringToUser(const char *string, int userAddress)
 {
-    int temp;   
+    int temp;
     for(unsigned i = 0;; i++) {
         temp = string[i];
         if(!machine -> WriteMem(userAddress + i, 1, temp))
@@ -279,7 +280,7 @@ WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount)
         temp = buffer[i];
         if(!machine -> WriteMem(userAddress + i, 1, temp))
             ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
-               //escritura fallida            
+               //escritura fallida
     }
 }
 
@@ -289,10 +290,6 @@ StartProc(void *arg)
     char **args = (char**)arg;
     currentThread-> space -> InitRegisters();  // Set the initial register values.
     currentThread -> space -> RestoreState();   // Load page table register.
-    
     WriteArgs(args);
-
     machine -> Run();
 }
-                                                                                    
-
