@@ -47,6 +47,7 @@ WriteArgs(char **args)
 char **
 SaveArgs(int address)
 {
+    printf("something!!\n");
     ASSERT(address != 0);
 
     // Count the number of arguments up to NULL.

@@ -27,7 +27,7 @@ static inline void
 WritePrompt(OpenFileId output)
 {
     static const char PROMPT[] = "--> ";
-    Write(PROMPT, sizeof PROMPT - 1, output);
+    Write((char *)PROMPT, sizeof PROMPT - 1, output);
 }
 
 static inline void
@@ -36,9 +36,9 @@ WriteDebug(const char *description, OpenFileId output)
     static const char PREFIX[] = "Debug: ";
     static const char SUFFIX[] = "\n";
     if(description != NULL){
-      Write(PREFIX, sizeof PREFIX - 1, output);
-      Write(description, strlen(description), output);
-      Write(SUFFIX, sizeof SUFFIX - 1, output);
+      Write((char *)PREFIX, sizeof PREFIX - 1, output);
+      Write((char *)description, strlen(description), output);
+      Write((char *)SUFFIX, sizeof SUFFIX - 1, output);
     }
 }
 
@@ -46,13 +46,13 @@ static inline void
 WriteError(const char *description, OpenFileId output)
 {
     // TO DO: how to make sure that `description` is not `NULL`?
-
+    //(char *) to aviod warnings
     static const char PREFIX[] = "Error: ";
     static const char SUFFIX[] = "\n";
     if(description != NULL){
-      Write(PREFIX, sizeof PREFIX - 1, output);
-      Write(description, strlen(description), output);
-      Write(SUFFIX, sizeof SUFFIX - 1, output);
+      Write((char *)PREFIX, sizeof PREFIX - 1, output);
+      Write((char *)description, strlen(description), output);
+      Write((char *)SUFFIX, sizeof SUFFIX - 1, output);
     }
 }
 
@@ -91,7 +91,6 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
       unsigned argCount;
 
       //argv[0] = line;
-      WritePrompt(1);
 
       argCount = 0;
 
@@ -106,6 +105,7 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
       //        argument?
       for (unsigned i = 0; line[i] != '\0' && i < MAX_LINE_SIZE; i++)
           if (line[i] == ARG_CONSTRUCTOR) {
+
             argv[argCount] = &line[i+1];
             i++;
               /*if (argCount == argvSize - 1)
@@ -115,14 +115,17 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
                   return 0;
               line[i] = '\0';
               argv[argCount] = &line[i + 1];*/
-            while(line[i] != ARG_CONSTRUCTOR)
+            while(line[i] != ARG_CONSTRUCTOR){
+              WriteDebug("Searching arguments", 1);
               i++;
+            }
             argCount++;
           }
 
       argv[argCount] = NULL;
-      return 1;
     }
+    WriteDebug("returning", 1);
+    return 1;
 }
 
 int
@@ -141,6 +144,9 @@ main(void)
         if (PrepareArguments(line, argv, MAX_ARG_COUNT) == 0) {
             WriteError("too many arguments.", OUTPUT);
             continue;
+        }
+        else{
+          WriteDebug("out of PrepareArguments", 1);
         }
         // Comment and uncomment according to whether command line arguments
 

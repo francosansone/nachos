@@ -27,6 +27,7 @@
 #include "threads/thread.hh"
 #include "address_space.hh"
 #include "args.cc"
+#include "read_write.cc"
 
 /// Entry point into the Nachos kernel.  Called when a user program is
 /// executing, and either does a syscall, or generates an addressing or
@@ -51,17 +52,9 @@
 
 void StartProc(void *args);
 
-void ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount);
+//void WriteArgs(char **args);
 
-void ReadBufferFromUser(int userAddress, char *outBuffer, unsigned byteCount);
-
-void WriteStringToUser(const char *string, int userAddress);
-
-void WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount);
-
-void WriteArgs(char **args);
-
-char ** SaveArgs(int address);
+//char ** SaveArgs(int address);
 
 
 
@@ -206,6 +199,7 @@ ExceptionHandler(ExceptionType which)
 
             case SC_Exec: {
                 DEBUG('t', "SYSCALL EXEC\n");
+                printf("%d %d\n\n", r4, r5);
                 ReadStringFromUser(r4, name, 12);
                 OpenFile *f = fileSystem -> Open(name);
                 AddressSpace *tas = new AddressSpace(f);
@@ -224,63 +218,6 @@ ExceptionHandler(ExceptionType which)
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(false);
-    }
-}
-
-void
-ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount)
-{
-    int buff;
-    for (unsigned i = 0; i < maxByteCount; i++){
-        DEBUG('f',"se lee la posicion %d\n", (unsigned)userAddress + i);
-        if(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff)){
-            DEBUG('f', "fallo de pagina\n");
-            ASSERT(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff))
-        }
-        outString[i] = buff;
-        if(outString[i] == '\0')
-            return;
-
-    }
-}
-
-
-void
-ReadBufferFromUser(int userAddress, char *outBuffer, unsigned byteCount)
-{
-    int buff;
-    for (unsigned i = 0; i < byteCount; i++){
-        if(!machine -> ReadMem(userAddress + i, 1, &buff))
-            ASSERT(!machine -> ReadMem(userAddress + i, 1, &buff))
-                  //lectura fallida
-        outBuffer[i] = buff;
-    }
-}
-
-void
-WriteStringToUser(const char *string, int userAddress)
-{
-    int temp;
-    for(unsigned i = 0;; i++) {
-        temp = string[i];
-        if(!machine -> WriteMem(userAddress + i, 1, temp))
-            ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
-                  //escritura fallida
-        if(temp == '\0')
-            return;   //escritura exitosa
-    }
-}
-
-
-void
-WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount)
-{
-    int temp;
-    for(unsigned i = 0; i < byteCount; i++){
-        temp = buffer[i];
-        if(!machine -> WriteMem(userAddress + i, 1, temp))
-            ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
-               //escritura fallida
     }
 }
 

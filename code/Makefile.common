@@ -88,7 +88,7 @@ USERPROG_H = ../userprog/address_space.hh \
              ../machine/instruction.hh    \
              ../machine/machine.hh        \
              ../machine/translation_entry.hh \
-             ../userprog/synch_console.hh 
+             ../userprog/synch_console.hh
 USERPROG_C = ../userprog/address_space.cc \
              ../userprog/bitmap.cc        \
              ../userprog/exception.cc     \
@@ -100,6 +100,7 @@ USERPROG_C = ../userprog/address_space.cc \
              ../machine/machine.cc        \
              ../machine/mips_sim.cc       \
              ../machine/translate.cc      \
+             ../userprog/read_write.cc    \
              ../userprog/synch_console.cc
 USERPROG_O = address_space.o \
              bitmap.o        \

@@ -576,7 +576,8 @@ exception.o: ../userprog/exception.cc /usr/include/stdc-predef.h \
  ../machine/disk.hh ../threads/synch.hh ../network/post.hh \
  ../machine/network.hh ../threads/synch_list.hh ../threads/synch.hh \
  ../userprog/synch_console.hh ../machine/console.hh ../threads/thread.hh \
- ../userprog/address_space.hh ../userprog/args.cc
+ ../userprog/address_space.hh ../userprog/args.cc \
+ ../userprog/read_write.cc
 prog_test.o: ../userprog/prog_test.cc /usr/include/stdc-predef.h \
  ../userprog/address_space.hh ../filesys/file_system.hh \
  ../filesys/open_file.hh ../threads/utility.hh ../machine/system_dep.hh \
@@ -832,6 +833,8 @@ translate.o: ../machine/translate.cc /usr/include/stdc-predef.h \
  ../machine/disk.hh ../threads/synch.hh ../network/post.hh \
  ../machine/network.hh ../threads/synch_list.hh ../threads/synch.hh \
  ../userprog/synch_console.hh ../machine/console.hh
+read_write.o: ../userprog/read_write.cc /usr/include/stdc-predef.h \
+ ../userprog/syscall.h
 synch_console.o: ../userprog/synch_console.cc /usr/include/stdc-predef.h \
  ../userprog/synch_console.hh ../machine/console.hh ../threads/utility.hh \
  ../machine/system_dep.hh /usr/include/stdlib.h /usr/include/features.h \

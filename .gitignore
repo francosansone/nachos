@@ -8,10 +8,12 @@ swtch.s
 /code/bin/disassemble
 
 /code/test/lib/
+/code/test/creat
 /code/test/mips-dec-ultrix42/
 /code/test/filetest
 /code/test/halt
 /code/test/matmult
+/code/test/pseudoshell
 /code/test/shell
 /code/test/sort
 /code/test/tiny_shell
