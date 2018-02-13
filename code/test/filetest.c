@@ -10,21 +10,28 @@
 
 
 #include "syscall.h"
+#define INPUT 0
+#define OUTPUT 1
 
 
 int
 main(int argc, char **argv)
 {
-    //const char *arg1 = argv[0];
+    const char *arg1;
+    for(unsigned i = 0; i < argc; i++){
+      const char *arg1 = argv[i];
+      Write(arg1,12,OUTPUT);
+    //  Write('\n',12,OUTPUT);
+      arg1 = argv[i];
+  }
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
     OpenFileId o = Open("test.txt");
-    Write("arg1",4,o);
-    Write("Hello world\n",12,1);
+    Write(arg1,2,o);
     Close(o);
     o = Open("test.txt");
-    Read(buff, 12,o);
+    Read(buff, 2,o);
     Close(o);
     OpenFileId p = Open("probando.txt");
     Write(buff, 4,p);

@@ -87,8 +87,9 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
     //            given that we are in C and not C++, it is convenient to
     //            include `stdbool.h`.
 
+    unsigned argCount;
+    unsigned endFunctionWord = -1;
     if((line != NULL) && (argv != NULL) && (argvSize <= MAX_ARG_COUNT)) {
-      unsigned argCount;
 
       //argv[0] = line;
 
@@ -104,8 +105,9 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
       // TO DO: what if the user wants to include a space as part of an
       //        argument?
       for (unsigned i = 0; line[i] != '\0' && i < MAX_LINE_SIZE; i++)
-          if (line[i] == ARG_CONSTRUCTOR) {
-
+          if (line[i] == ARG_SEPARATOR) {
+            if(endFunctionWord == -1)
+              endFunctionWord = i;
             argv[argCount] = &line[i+1];
             i++;
               /*if (argCount == argvSize - 1)
@@ -115,17 +117,21 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
                   return 0;
               line[i] = '\0';
               argv[argCount] = &line[i + 1];*/
-            while(line[i] != ARG_CONSTRUCTOR){
+            unsigned contLineArg = 0;
+            for(unsigned j = 0; j < MAX_LINE_SIZE && line[i] != ARG_CONSTRUCTOR; j++, i++){
               WriteDebug("Searching arguments", 1);
-              i++;
+              //i++;
+              contLineArg = j;
             }
+            argv[argCount][contLineArg + 1] = '\0';
+            WriteDebug("Have an argument", 1);
             argCount++;
           }
 
       argv[argCount] = NULL;
     }
     WriteDebug("returning", 1);
-    return 1;
+    return endFunctionWord;
 }
 
 int
@@ -138,10 +144,11 @@ main(void)
 
     for (;;) {
         WritePrompt(OUTPUT);
-        const unsigned lineSize = ReadLine(line, 5, INPUT);
+        const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
         if (lineSize == 0)
             continue;
-        if (PrepareArguments(line, argv, MAX_ARG_COUNT) == 0) {
+            unsigned endFunctionWord = PrepareArguments(line, argv, MAX_ARG_COUNT);
+        if (endFunctionWord == 0) {
             WriteError("too many arguments.", OUTPUT);
             continue;
         }
@@ -152,6 +159,11 @@ main(void)
 
         // are given in the system call or not.
         //const SpaceId newProc = Exec(line);
+        line[endFunctionWord] = '\0';
+        WriteDebug(line, OUTPUT);
+        WriteDebug(argv[0], OUTPUT);
+        WriteDebug(argv[1], OUTPUT);
+        WriteDebug(argv[2], OUTPUT);
         const SpaceId newProc = Exec(line, argv);
 
         // TO DO: check for errors when calling `Exec`; this depends on how

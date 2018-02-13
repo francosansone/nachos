@@ -25,6 +25,7 @@ WriteArgs(char **args)
         sp -= strlen(args[i]) + 1;  // Decrease SP (leave one byte for \0).
         WriteStringToUser(args[i], sp);  // Write the string there.
         args_address[i] = sp;       // Save the argument's address.
+        printf("%s\n", args[i]);
         delete args[i];             // Free the memory.
     }
     ASSERT(i < MAX_ARG_COUNT);
@@ -41,6 +42,7 @@ WriteArgs(char **args)
     sp -= 16;  // Make room for the “register saves”.
 
     machine->WriteRegister(STACK_REG, sp);
+
     delete args;  // Free the array.
 }
 
