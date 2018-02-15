@@ -199,7 +199,7 @@ ExceptionHandler(ExceptionType which)
 
             case SC_Exec: {
                 DEBUG('t', "SYSCALL EXEC\n");
-                printf("%d %d\n\n", r4, r5);
+                //printf("%d %d\n\n", r4, r5);
                 ReadStringFromUser(r4, name, 12);
                 OpenFile *f = fileSystem -> Open(name);
                 AddressSpace *tas = new AddressSpace(f);

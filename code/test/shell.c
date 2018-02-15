@@ -72,7 +72,7 @@ ReadLine(char *buffer, unsigned size, OpenFileId input)
               break;
           }
       }
-      WriteDebug(buffer, 1);
+      //WriteDebug(buffer, 1);
       return i;
     }
 }
@@ -160,10 +160,10 @@ main(void)
         // are given in the system call or not.
         //const SpaceId newProc = Exec(line);
         line[endFunctionWord] = '\0';
-        WriteDebug(line, OUTPUT);
+      /*  WriteDebug(line, OUTPUT);
         WriteDebug(argv[0], OUTPUT);
         WriteDebug(argv[1], OUTPUT);
-        WriteDebug(argv[2], OUTPUT);
+        WriteDebug(argv[2], OUTPUT);*/
         const SpaceId newProc = Exec(line, argv);
 
         // TO DO: check for errors when calling `Exec`; this depends on how

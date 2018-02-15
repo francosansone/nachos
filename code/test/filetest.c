@@ -20,23 +20,24 @@ main(int argc, char **argv)
     const char *arg1;
     for(unsigned i = 0; i < argc; i++){
       const char *arg1 = argv[i];
-      Write(arg1,12,OUTPUT);
+      Write(arg1,4,OUTPUT);
     //  Write('\n',12,OUTPUT);
       arg1 = argv[i];
   }
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
+    Write(arg1,4,OUTPUT);
     OpenFileId o = Open("test.txt");
-    Write(arg1,2,o);
+    Write(arg1,4,o);
     Close(o);
     o = Open("test.txt");
-    Read(buff, 2,o);
+    Read(buff, 4,o);
     Close(o);
     OpenFileId p = Open("probando.txt");
     Write(buff, 4,p);
 //    Close(o);
-//    Close(p);
+    Close(p);
     Exit(0);
 
     // Not reached.
