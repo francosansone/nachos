@@ -5,7 +5,7 @@ int main(){
     char *args[1];
     args[0] = "Hola";
     Create("Holanda.txt");
-    Write("Hola Mundo", 13, 1);
+    Write("Hola Mundo", 10, 1);
     int pid = Exec("filetest", args);
     int ret = Join(pid);
     Create("Holan.txt");

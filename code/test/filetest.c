@@ -17,17 +17,20 @@
 int
 main(int argc, char **argv)
 {
+    char *a="Chau";
+
+    Write(a,4,OUTPUT);
+    Write(a,4,OUTPUT);
     const char *arg1;
     for(unsigned i = 0; i < argc; i++){
-      const char *arg1 = argv[i];
+      arg1 = argv[i];
       Write(arg1,4,OUTPUT);
     //  Write('\n',12,OUTPUT);
-      arg1 = argv[i];
   }
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
-    Write(arg1,4,OUTPUT);
+    Write(argv[argc-1],4,OUTPUT);
     OpenFileId o = Open("test.txt");
     Write(arg1,4,o);
     Close(o);

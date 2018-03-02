@@ -90,7 +90,8 @@ ExceptionHandler(ExceptionType which)
 
             case SC_Create: {
                 DEBUG('f', "Syscall CREATE\n");
-                ReadStringFromUser(r4, name, 12);
+                ReadStringFromUser(r4, name, 16);
+                DEBUG('f', "Var name: %s\n", name);
                 ASSERT(fileSystem -> Create(name, 128));
                 IncPC();
                 break;
@@ -104,7 +105,7 @@ ExceptionHandler(ExceptionType which)
                     ASSERT(false);
                 }
                 if(r6 == 0){
-                    char temp = buff[0];
+                    //char temp = buff[0];
                     for(int i = 0; i < r5; i++){
                         DEBUG('f', "READING!\n");
                         buff[i] = synchConsole -> ReadChar();
@@ -137,6 +138,7 @@ ExceptionHandler(ExceptionType which)
                 }
                 if(r6 == 1){
                     ReadBufferFromUser(r4, buff, r5);
+                    DEBUG('f', "Buff: %s\n", buff);
                     for(int i = 0; i < r5; i++){
                         char temp;
                         temp = buff[i];

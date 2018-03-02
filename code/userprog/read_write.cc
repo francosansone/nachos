@@ -15,6 +15,7 @@ ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount)
             return;
 
     }
+    ASSERT(false);
 }
 
 

@@ -25,8 +25,8 @@ WriteArgs(char **args)
         sp -= strlen(args[i]) + 1;  // Decrease SP (leave one byte for \0).
         WriteStringToUser(args[i], sp);  // Write the string there.
         args_address[i] = sp;       // Save the argument's address.
-        printf("%s\n", args[i]);
-        delete args[i];             // Free the memory.
+        //printf("%s\n", args[i]);
+        delete [] args[i];             // Free the memory.
     }
     ASSERT(i < MAX_ARG_COUNT);
 
@@ -43,13 +43,12 @@ WriteArgs(char **args)
 
     machine->WriteRegister(STACK_REG, sp);
 
-    delete args;  // Free the array.
+    delete [] args;  // Free the array.
 }
 
 char **
 SaveArgs(int address)
 {
-    printf("something!!\n");
     ASSERT(address != 0);
 
     // Count the number of arguments up to NULL.
@@ -73,7 +72,9 @@ SaveArgs(int address)
         ret[j] = new char [MAX_ARG_LENGTH];
         machine->ReadMem(address + j * 4, 4, &val);
         ReadStringFromUser(val, ret[j], MAX_ARG_LENGTH);
+        DEBUG('q',"argument: %s\n", ret[j]);
     }
+    
     ret[i - 1] = NULL;  // Write the trailing NULL.
 
     return ret;
