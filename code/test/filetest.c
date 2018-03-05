@@ -17,10 +17,10 @@
 int
 main(int argc, char **argv)
 {
-    char *a="Chau";
+    char *a="Hola a todo el fucking mundo\n";
 
-    Write(a,4,OUTPUT);
-    Write(a,4,OUTPUT);
+    Write(a,29,OUTPUT);
+    Write(a,29,OUTPUT);
     const char *arg1;
     for(unsigned i = 0; i < argc; i++){
       arg1 = argv[i];

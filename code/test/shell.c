@@ -118,20 +118,28 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
               line[i] = '\0';
               argv[argCount] = &line[i + 1];*/
             unsigned contLineArg = 0;
-            for(unsigned j = 0; j < MAX_LINE_SIZE && line[i] != ARG_CONSTRUCTOR; j++, i++){
-              WriteDebug("Searching arguments", 1);
+            for(unsigned j = 0; j < MAX_LINE_SIZE && line[i] != ARG_SEPARATOR; j++, i++){
+              //WriteDebug("Searching arguments", 1);
               //i++;
               contLineArg = j;
             }
             argv[argCount][contLineArg + 1] = '\0';
-            WriteDebug("Have an argument", 1);
+            //WriteDebug("Have an argument", 1);
             argCount++;
           }
 
       argv[argCount] = NULL;
     }
-    WriteDebug("returning", 1);
+    //WriteDebug("returning", 1);
     return endFunctionWord;
+}
+
+unsigned
+IsJoineable(char *line, const unsigned lineSize){
+  if(line[lineSize - 1] == '&')
+    return 0;
+  else
+    return 1;
 }
 
 int
@@ -141,35 +149,42 @@ main(void)
     const OpenFileId OUTPUT = ConsoleOutput;
     char             line[MAX_LINE_SIZE];
     char            *argv[MAX_ARG_COUNT];
+    unsigned         endFunctionWord;
+    unsigned   lineSize;
 
     for (;;) {
         WritePrompt(OUTPUT);
-        const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
+        lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
         if (lineSize == 0)
             continue;
-            unsigned endFunctionWord = PrepareArguments(line, argv, MAX_ARG_COUNT);
+            endFunctionWord = PrepareArguments(line, argv, MAX_ARG_COUNT);
         if (endFunctionWord == 0) {
             WriteError("too many arguments.", OUTPUT);
             continue;
         }
         else{
-          WriteDebug("out of PrepareArguments", 1);
+          //WriteDebug("out of PrepareArguments", 1);
         }
         // Comment and uncomment according to whether command line arguments
 
         // are given in the system call or not.
         //const SpaceId newProc = Exec(line);
         line[endFunctionWord] = '\0';
+        //WriteDebug(argv[0], OUTPUT);
       /*  WriteDebug(line, OUTPUT);
-        WriteDebug(argv[0], OUTPUT);
         WriteDebug(argv[1], OUTPUT);
         WriteDebug(argv[2], OUTPUT);*/
         const SpaceId newProc = Exec(line, argv);
 
         // TO DO: check for errors when calling `Exec`; this depends on how
         //        errors are reported.
-
-        //Join(newProc);
+        if(IsJoineable(line, lineSize)){
+          //WriteDebug("Join will coming\n", OUTPUT);
+          Join(newProc);
+        }
+        //else{
+          //WriteDebug("Not join\n", OUTPUT);
+        //}
         // TO DO: is it necessary to check for errors after `Join` too, or
         //        can you be sure that, with the implementation of the system
         //        call handler you made, it will never give an error?; what
