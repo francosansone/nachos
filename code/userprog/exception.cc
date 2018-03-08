@@ -56,7 +56,7 @@ void StartProc(void *args);
 
 //char ** SaveArgs(int address);
 
-
+void insertTLB(TranslationEntry);
 
 void
 IncPC()
@@ -217,6 +217,16 @@ ExceptionHandler(ExceptionType which)
                 break;
             }
         }
+    } else if(which == PAGE_FAULT_EXCEPTION) {
+        unsigned vaddr = BAD_VADDR_REG;
+        unsigned vpn = vaddr / PAGE_SIZE;
+        if(vaddr < 0 || vaddr >= ((currentThread -> space) ->  getNumPages())
+        * PAGE_SIZE){
+            printf("No more memory %d %d\n", which, type);
+            //What do now?
+        }
+        //define insertTLB
+        insertTLB((currentThread -> space) -> getPageTable()[vpn]);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(false);
@@ -231,4 +241,9 @@ StartProc(void *arg)
     currentThread -> space -> RestoreState();   // Load page table register.
     WriteArgs(args);
     machine -> Run();
+}
+
+void
+insertTLB(TranslationEntry t) {
+    /* code */
 }

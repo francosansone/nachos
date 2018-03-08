@@ -41,6 +41,14 @@ public:
     void SaveState();
     void RestoreState();
 
+    unsigned getNumPages(){
+        return numPages;
+    }
+
+    TranslationEntry *getPageTable(){
+        return pageTable;
+    }
+
 private:
 
     /// Assume linear page table translation for now!
