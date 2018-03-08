@@ -91,8 +91,6 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
     unsigned endFunctionWord = -1;
     if((line != NULL) && (argv != NULL) && (argvSize <= MAX_ARG_COUNT)) {
 
-      //argv[0] = line;
-
       argCount = 0;
 
       // Traverse the whole line and replace spaces between arguments by null
@@ -104,30 +102,23 @@ PrepareArguments(char *line, char **argv, unsigned argvSize)
       //
       // TO DO: what if the user wants to include a space as part of an
       //        argument?
-      for (unsigned i = 0; line[i] != '\0' && i < MAX_LINE_SIZE; i++)
-          if (line[i] == ARG_SEPARATOR) {
-            if(endFunctionWord == -1)
-              endFunctionWord = i;
-            argv[argCount] = &line[i+1];
-            i++;
-              /*if (argCount == argvSize - 1)
-                  // The maximum of allowed arguments is exceeded, and
-                  // therefore the size of `argv` is too.  Note that 1 is
-                  // decreased in order to leave space for the NULL at the end.
-                  return 0;
-              line[i] = '\0';
-              argv[argCount] = &line[i + 1];*/
-            unsigned contLineArg = 0;
-            for(unsigned j = 0; j < MAX_LINE_SIZE && line[i] != ARG_SEPARATOR; j++, i++){
-              //WriteDebug("Searching arguments", 1);
-              //i++;
-              contLineArg = j;
-            }
-            argv[argCount][contLineArg + 1] = '\0';
-            //WriteDebug("Have an argument", 1);
-            argCount++;
-          }
+      for (unsigned i = 0; line[i] != NULL && i < MAX_LINE_SIZE; i++)
+        if (line[i] == ARG_SEPARATOR){  //Read function name
+            endFunctionWord = i;
+            break;
+        }
 
+      for (unsigned i = (endFunctionWord + 1); i != -1 && i < MAX_LINE_SIZE
+        && line[i] != NULL; i++){ //Read arguments
+          while(line[i] == ARG_SEPARATOR)
+            i++;
+          unsigned j = i;
+          argv[argCount] = &line[j];
+          for(; j < MAX_LINE_SIZE && line[j] != NULL && line[j] != ARG_SEPARATOR; j++);
+          argv[argCount][j - i] = '\0';
+          i = j;
+          argCount++;
+        }
       argv[argCount] = NULL;
     }
     //WriteDebug("returning", 1);
@@ -170,7 +161,7 @@ main(void)
         // are given in the system call or not.
         //const SpaceId newProc = Exec(line);
         line[endFunctionWord] = '\0';
-        //WriteDebug(argv[0], OUTPUT);
+      //  WriteDebug(argv[0], OUTPUT);
       /*  WriteDebug(line, OUTPUT);
         WriteDebug(argv[1], OUTPUT);
         WriteDebug(argv[2], OUTPUT);*/
