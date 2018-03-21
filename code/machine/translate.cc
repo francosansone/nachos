@@ -198,7 +198,7 @@ Machine::Translate(unsigned virtAddr, unsigned *physAddr,
     }
 
     // We must have either a TLB or a page table, but not both!
-    ASSERT(tlb == NULL || pageTable == NULL);
+    //ASSERT(tlb == NULL || pageTable == NULL);
     ASSERT(tlb != NULL || pageTable != NULL);
 
     // Calculate the virtual page number, and offset within the page,

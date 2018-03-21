@@ -55,11 +55,13 @@ Machine::Machine(bool debug)
           mainMemory[i] = 0;
 
 #ifdef USE_TLB
+    DEBUG('m', "Using TLB\n");
     tlb = new TranslationEntry[TLB_SIZE];
     for (unsigned i = 0; i < TLB_SIZE; i++)
         tlb[i].valid = false;
     pageTable = NULL;
 #else  // Use linear page table.
+    DEBUG('m', "Not Using TLB\n");
     tlb = NULL;
     pageTable = NULL;
 #endif
@@ -116,4 +118,3 @@ Machine::WriteRegister(unsigned num, int value)
     //DEBUG('m', "WriteRegister %u, value %d\n", num, value);
     registers[num] = value;
 }
-
