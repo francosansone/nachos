@@ -45,8 +45,8 @@ public:
         return numPages;
     }
 
-    TranslationEntry *getPageTable(){
-        return pageTable;
+    TranslationEntry getPageTable(int vpn){
+        return pageTable[vpn];
     }
 
 private:

@@ -56,7 +56,7 @@ void StartProc(void *args);
 
 //char ** SaveArgs(int address);
 
-void insertTLB(TranslationEntry, int);
+void insertTLB(TranslationEntry);
 
 void
 IncPC()
@@ -74,7 +74,7 @@ IncPC()
 void
 ExceptionHandler(ExceptionType which)
 {
-    static int page = 0;
+    printf("ExceptionHandler" );
     int type = machine->ReadRegister(2);
     char name[128];
     char buff[128];
@@ -220,21 +220,17 @@ ExceptionHandler(ExceptionType which)
             }
         }
     } else if(which == PAGE_FAULT_EXCEPTION) {
-        //printf ("\nPAGE_FAULT_EXCEPTION\n");
+        //printf ("\nPAGE_FAULT_EXCEPTION\n");cd
         unsigned vaddr = BAD_VADDR_REG;
         unsigned vpn = vaddr / PAGE_SIZE;
         DEBUG('m', "vpn number: %d\n", vpn);
         if(vaddr < 0 || vaddr >= ((currentThread -> space) ->  getNumPages())
         * PAGE_SIZE){
             printf("No more memory %d %d\n", which, type);
-            //What do now?
+            //What to do now?
         }
         //define insertTLB
-        insertTLB((currentThread -> space) -> getPageTable()[vpn], page);
-        if(page == 3)
-            page = 0;
-        else
-            page++;
+        insertTLB(currentThread -> space -> getPageTable(vpn));
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(false);
@@ -252,8 +248,14 @@ StartProc(void *arg)
 }
 
 void
-insertTLB(TranslationEntry t, int p) { //Write machine -> tlb
-    printf( "Writing tlb!, %d\n", p);
-    machine -> tlb[p] = t;
-    /* code */
+insertTLB(TranslationEntry t) { //Write machine -> tlb
+    printf("Writing tlb!\n");
+    int i;
+    for(i = 0; i < (int)TLB_SIZE; i++)
+        if(machine->tlb[i].valid){
+            DEBUG('m', machine->tlb[i].valid ? "true\n" : "false\n");
+            machine->tlb[i] = t;
+        }
+    // What do I do now?
+    machine->tlb[0] = t;
 }
