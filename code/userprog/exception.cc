@@ -74,7 +74,7 @@ IncPC()
 void
 ExceptionHandler(ExceptionType which)
 {
-    printf("ExceptionHandler" );
+    // printf("ExceptionHandler" );
     int type = machine->ReadRegister(2);
     char name[128];
     char buff[128];
@@ -220,8 +220,7 @@ ExceptionHandler(ExceptionType which)
             }
         }
     } else if(which == PAGE_FAULT_EXCEPTION) {
-        //printf ("\nPAGE_FAULT_EXCEPTION\n");cd
-        unsigned vaddr = BAD_VADDR_REG;
+        unsigned vaddr = machine -> ReadRegister(BAD_VADDR_REG);
         unsigned vpn = vaddr / PAGE_SIZE;
         DEBUG('m', "vpn number: %d\n", vpn);
         if(vaddr < 0 || vaddr >= ((currentThread -> space) ->  getNumPages())
@@ -249,13 +248,15 @@ StartProc(void *arg)
 
 void
 insertTLB(TranslationEntry t) { //Write machine -> tlb
-    printf("Writing tlb!\n");
-    int i;
-    for(i = 0; i < (int)TLB_SIZE; i++)
+    // printf("Writing tlb!\n");
+    for(int i = 0; i < (int)TLB_SIZE; i++)
         if(machine->tlb[i].valid){
             DEBUG('m', machine->tlb[i].valid ? "true\n" : "false\n");
             machine->tlb[i] = t;
+            return;
         }
     // What do I do now?
+    int vpn = machine -> tlb[0].virtualPage;
+    currentThread -> space -> getPageTable(vpn) = machine->tlb[0]; // save penalized page
     machine->tlb[0] = t;
 }

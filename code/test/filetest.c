@@ -17,8 +17,7 @@
 int
 main(int argc, char **argv)
 {
-    char *a="Hola a todo el fucking mundo\n";
-
+    char *a = "Hello world";
     Write(a,29,OUTPUT);
     Write(a,29,OUTPUT);
     const char *arg1;
