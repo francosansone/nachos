@@ -31,22 +31,22 @@
 const unsigned PAGE_SIZE = SECTOR_SIZE;  ///< Set the page size equal to the
                                          ///< disk sector size, for
                                          ///< simplicity.
-const unsigned NUM_PHYS_PAGES = 128;
+const unsigned NUM_PHYS_PAGES = 512;
 const unsigned MEMORY_SIZE = NUM_PHYS_PAGES * PAGE_SIZE;
-const unsigned TLB_SIZE = 4;  ///< if there is a TLB, make it small.
+const unsigned TLB_SIZE = 16;  ///< if there is a TLB, make it small.
 
 enum ExceptionType {
-    NO_EXCEPTION,             // Everything ok!
-    SYSCALL_EXCEPTION,        // A program executed a system call.
-    PAGE_FAULT_EXCEPTION,     // No valid translation found
-    READ_ONLY_EXCEPTION,      // Write attempted to page marked “read-only”
-    BUS_ERROR_EXCEPTION,      // Translation resulted in an invalid physical
+    NO_EXCEPTION = 0,             // Everything ok!
+    SYSCALL_EXCEPTION = 1,        // A program executed a system call.
+    PAGE_FAULT_EXCEPTION = 2,     // No valid translation found
+    READ_ONLY_EXCEPTION = 3,      // Write attempted to page marked “read-only”
+    BUS_ERROR_EXCEPTION = 4,      // Translation resulted in an invalid physical
                               // address.
-    ADDRESS_ERROR_EXCEPTION,  // Unaligned reference or one that was beyond
+    ADDRESS_ERROR_EXCEPTION = 5,  // Unaligned reference or one that was beyond
                               // the end of the address space.
-    OVERFLOW_EXCEPTION,       // Integer overflow in `add` or `sub`.
-    ILLEGAL_INSTR_EXCEPTION,  // Unimplemented or reserved instruction.
-    NUM_EXCEPTION_TYPES
+    OVERFLOW_EXCEPTION = 6,       // Integer overflow in `add` or `sub`.
+    ILLEGAL_INSTR_EXCEPTION = 7,  // Unimplemented or reserved instruction.
+    NUM_EXCEPTION_TYPES = 8
 };
 
 // User program CPU state.  The full set of MIPS registers, plus a few
