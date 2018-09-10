@@ -8,7 +8,8 @@ ReadStringFromUser(int userAddress, char *outString, unsigned maxByteCount)
         DEBUG('f',"se lee la posicion %d\n", (unsigned)userAddress + i);
         if(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff)){
             DEBUG('f', "fallo de pagina\n");
-            ASSERT(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff))
+            if(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff))
+                ASSERT(!machine -> ReadMem((unsigned)userAddress + i, 1, &buff))
         }
         outString[i] = buff;
         if(outString[i] == '\0')
@@ -25,7 +26,8 @@ ReadBufferFromUser(int userAddress, char *outBuffer, unsigned byteCount)
     int buff;
     for (unsigned i = 0; i < byteCount; i++){
         if(!machine -> ReadMem(userAddress + i, 1, &buff))
-            ASSERT(!machine -> ReadMem(userAddress + i, 1, &buff))
+            if(!machine -> ReadMem(userAddress + i, 1, &buff))
+                ASSERT(!machine -> ReadMem(userAddress + i, 1, &buff))
                   //lectura fallida
         outBuffer[i] = buff;
     }
