@@ -20,12 +20,12 @@ main(int argc, char **argv)
     char *a = "Hello world\n";
     Write(a,29,STANDAR_OUTPUT);
     Write(a,29,STANDAR_OUTPUT);
-    const char *arg1;
+    const char *arg1 = "Hola Mundo\n";
     for(unsigned i = 0; i < argc; i++){
       arg1 = argv[i];
       Write(arg1,4,STANDAR_OUTPUT);
     //  Write('\n',12,OUTPUT);
-  }
+    }
     Create("test.txt");
     Create("probando.txt");
     char buff[128];
