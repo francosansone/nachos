@@ -7,7 +7,7 @@
 
 
 #include "syscall.h"
-
+#define STANDAR_OUTPUT 1
 
 /// Sum total of the arrays does not fit in physical memory.
 #define DIM  20
@@ -36,5 +36,7 @@ main(void)
                 C[i][j] += A[i][k] * B[k][j];
 
     // And then we are done.
+    Write("Hello world\n", 13, STANDAR_OUTPUT);
     Exit(C[DIM - 1][DIM - 1]);
+    // Halt();
 }
