@@ -40,7 +40,8 @@ WriteStringToUser(const char *string, int userAddress)
     for(unsigned i = 0;; i++) {
         temp = string[i];
         if(!machine -> WriteMem(userAddress + i, 1, temp))
-            ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
+            if(!machine -> WriteMem(userAddress + i, 1, temp))
+                ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
                   //escritura fallida
         if(temp == '\0')
             return;   //escritura exitosa
@@ -55,7 +56,8 @@ WriteBufferToUser(const char *buffer, int userAddress,unsigned byteCount)
     for(unsigned i = 0; i < byteCount; i++){
         temp = buffer[i];
         if(!machine -> WriteMem(userAddress + i, 1, temp))
-            ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
+            if(!machine -> WriteMem(userAddress + i, 1, temp))
+                ASSERT(!machine -> WriteMem(userAddress + i, 1, temp))
                //escritura fallida
     }
 }

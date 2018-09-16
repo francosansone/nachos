@@ -48,9 +48,14 @@
 #include "userprog/address_space.hh"
 #endif
 
+#ifdef USE_TLB
+#include "machine/translation_entry.hh"
+#endif
+
 #include "filesys/open_file.hh"
 
 class Puerto;
+class TranslationEntry;
 
 /// CPU register state to be saved on context switch.
 ///
@@ -102,7 +107,7 @@ enum ThreadStatus {
 
 /// Le aviso al compilador que existen estas funciones para evitar problemas
 /// en userprog
-void addThread(ThreadTable t); 
+void addThread(ThreadTable t);
 void removeThread(SpaceId pid);
 Thread *getThread(SpaceId pid);
 
@@ -138,17 +143,19 @@ private:
     bool ToJoin;
 
     int Priority;
-   
-    List<struct stOpen> *files; 
+
+    List<struct stOpen> *files;
 
     OpenFileId cont;
 
     SpaceId Pid;
+    // For virtual memory purporses
+    TranslationEntry* savedTlb;
 
 public:
 
     /// Initialize a `Thread`.
-    Thread(const char *debugName, bool ToJoin = false, 
+    Thread(const char *debugName, bool ToJoin = false,
            int Priority = 0);
 
     /// Deallocate a Thread.
@@ -161,7 +168,7 @@ public:
 
     /// Make thread run `(*func)(arg)`.
     void Fork(VoidFunctionPtr func, void* arg, int p = 0);
-    
+
     /// Relinquish the CPU if any other thread is runnable.
     void Yield();
 
@@ -193,12 +200,12 @@ public:
     }
 
     void Join(int *ret = NULL);
-    
+
     int getPriority()
     {
         return Priority;
     }
-    
+
     void setPriority(int newPriority){
         ASSERT(newPriority >= 0 && newPriority <= 5);
         Priority = newPriority;
@@ -220,7 +227,7 @@ public:
     void FileClose();
 
     int getPid()
-    { 
+    {
         return Pid;
     }
 
@@ -229,7 +236,7 @@ public:
 //    void removeThread(SpaceId Pid);
 
 //    Thread *getThread(SpaceId Pid);
- 
+
 private:
     // Some of the private data for this class is listed above.
 
@@ -246,7 +253,7 @@ private:
 
     /// Allocate a stack for thread.  Used internally by `Fork`.
     void StackAllocate(VoidFunctionPtr func, void *arg);
-    
+
 #ifdef USER_PROGRAM
     /// User-level CPU register state.
     ///
@@ -254,6 +261,8 @@ private:
     /// registers -- one for its state while executing user code, one for its
     /// state while executing kernel code.
     int userRegisters[NUM_TOTAL_REGS];
+
+    void flushTlb(TranslationEntry *tempTlbCopy);
 
 public:
 

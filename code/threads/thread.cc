@@ -22,6 +22,7 @@
 #include "synch.hh"
 #include "system.hh"
 
+class TranslationEntry;
 class Puerto; //Le indico que existe una clase Puerto.
 static int ContPid = 0;
 
@@ -36,7 +37,7 @@ void
 addThread(ThreadTable t)
 {
     threads -> Append(t);
-}    
+}
 
 void
 removeThread(SpaceId pid)
@@ -74,7 +75,7 @@ const unsigned STACK_FENCEPOST = 0xdeadbeef;
 /// `Thread::Fork`.
 ///
 /// * `threadName` is an arbitrary string, useful for debugging.
-Thread::Thread(const char* threadName, bool join, int pr)  
+Thread::Thread(const char* threadName, bool join, int pr)
 {
     name     = threadName;
     stackTop = NULL;
@@ -89,6 +90,14 @@ Thread::Thread(const char* threadName, bool join, int pr)
     ContPid++;
     ThreadTable tt = {Pid, this};
     addThread(tt);
+    #ifdef USE_TLB
+        TranslationEntry tempSavedTlb[TLB_SIZE];
+        TranslationEntry t;
+        t.valid = false;
+        for(unsigned i = 0; i < TLB_SIZE; i++)
+            tempSavedTlb[i] = t;
+        savedTlb = tempSavedTlb;
+    #endif
     DEBUG('t',"Creado el hilo %d\n", Pid);
     //threads = new List <ThreadTable>;
 #ifdef USER_PROGRAM
@@ -112,6 +121,10 @@ Thread::~Thread()
     ///delete port; //no se realiza
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, STACK_SIZE * sizeof *stack);
+    #ifdef USE_TLB
+        TranslationEntry tempTlbCopy[TLB_SIZE];
+        flushTlb(tempTlbCopy);
+    #endif
     delete files;
 }
 
@@ -141,7 +154,7 @@ Thread::Fork(VoidFunctionPtr func, void* arg, int p)
     DEBUG('t', "Forking thread \"%s\" with func = 0x%X, arg = %d\n",
           name, (HostMemoryAddress) func, arg);
 #endif
-    
+
     Priority = p;
     StackAllocate(func, arg);
 
@@ -149,8 +162,8 @@ Thread::Fork(VoidFunctionPtr func, void* arg, int p)
     scheduler->ReadyToRun(this);  // `ReadyToRun` assumes that interrupts
                                   // are disabled!
     interrupt->SetLevel(oldLevel);
-    
-    
+
+
 }
 
 
@@ -200,7 +213,7 @@ Thread::Finish(int r)
     Sleep();  // Invokes `SWITCH`.
     // Not reached.
 }
-    
+
 /// Relinquish the CPU if any other thread is ready to run.
 ///
 /// If so, put the thread on the end of the ready list, so that it will
@@ -331,7 +344,7 @@ Thread::Join(int *ret)
         int Buff;
         port -> Receive(&Buff);
      }
-     else 
+     else
         port -> Receive(ret);
 }
 
@@ -398,7 +411,7 @@ Thread::FileClose()
         struct stOpen temp = files -> Remove();
         DEBUG('f', "Cerrado el archivo %d\n", temp.number);
     }
-}        
+}
 
 #ifdef USER_PROGRAM
 #include "machine.hh"
@@ -408,11 +421,32 @@ Thread::FileClose()
 /// Note that a user program thread has *two* sets of CPU registers -- one
 /// for its state while executing user code, one for its state while
 /// executing kernel code.  This routine saves the former.
+
+void
+Thread::flushTlb(TranslationEntry *tempSavedTlb){
+    #ifdef USE_TLB
+        TranslationEntry t;
+        for(unsigned i = 0; i < TLB_SIZE; i++){
+            // printf("SaveUserState %u\n", i);
+            tempSavedTlb[i] = machine->tlb[i];
+            machine->tlb[i] = t;
+        }
+    #endif
+
+};
+
 void
 Thread::SaveUserState()
 {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++)
         userRegisters[i] = machine->ReadRegister(i);
+
+    #ifdef USE_TLB
+        // Flush TLB
+        TranslationEntry tempSavedTlb[TLB_SIZE];
+        flushTlb(tempSavedTlb);
+        savedTlb = tempSavedTlb;
+    #endif
 }
 
 /// Restore the CPU state of a user program on a context switch.
@@ -425,6 +459,14 @@ Thread::RestoreUserState()
 {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++)
         machine->WriteRegister(i, userRegisters[i]);
+
+        DEBUG('a',"RestoreUserState\n");
+    #ifdef USE_TLB
+        for(unsigned i = 0; i < TLB_SIZE; i++){
+            // printf("RestoreUserState %u\n", i);
+            machine->tlb[i] = savedTlb[i];
+        }
+    #endif
 }
 
 #endif
