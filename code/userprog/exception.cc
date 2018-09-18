@@ -235,7 +235,8 @@ ExceptionHandler(ExceptionType which)
         //define insertTLB
         insertTLB(currentThread -> space -> getPageTable(vpn));
     } else if(which == READ_ONLY_EXCEPTION){
-        printf("READ ONLY EXCEPTION");
+        printf("READ ONLY EXCEPTION\n");
+        currentThread->Finish(-1);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(false);
