@@ -149,8 +149,10 @@ private:
     OpenFileId cont;
 
     SpaceId Pid;
+    #ifdef USE_TLB
     // For virtual memory purporses
-    TranslationEntry* savedTlb;
+        TranslationEntry savedTlb[TLB_SIZE];
+    #endif
 
 public:
 

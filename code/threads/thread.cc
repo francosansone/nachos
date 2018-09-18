@@ -91,12 +91,10 @@ Thread::Thread(const char* threadName, bool join, int pr)
     ThreadTable tt = {Pid, this};
     addThread(tt);
     #ifdef USE_TLB
-        TranslationEntry tempSavedTlb[TLB_SIZE];
         TranslationEntry t;
         t.valid = false;
         for(unsigned i = 0; i < TLB_SIZE; i++)
-            tempSavedTlb[i] = t;
-        savedTlb = tempSavedTlb;
+            savedTlb[i] = t;
     #endif
     DEBUG('t',"Creado el hilo %d\n", Pid);
     //threads = new List <ThreadTable>;
@@ -121,10 +119,6 @@ Thread::~Thread()
     ///delete port; //no se realiza
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, STACK_SIZE * sizeof *stack);
-    #ifdef USE_TLB
-        TranslationEntry tempTlbCopy[TLB_SIZE];
-        flushTlb(tempTlbCopy);
-    #endif
     delete files;
 }
 
@@ -425,11 +419,10 @@ Thread::FileClose()
 void
 Thread::flushTlb(TranslationEntry *tempSavedTlb){
     #ifdef USE_TLB
-        TranslationEntry t;
         for(unsigned i = 0; i < TLB_SIZE; i++){
             // printf("SaveUserState %u\n", i);
             tempSavedTlb[i] = machine->tlb[i];
-            machine->tlb[i] = t;
+            machine->tlb[i].valid = false;
         }
     #endif
 
@@ -443,9 +436,7 @@ Thread::SaveUserState()
 
     #ifdef USE_TLB
         // Flush TLB
-        TranslationEntry tempSavedTlb[TLB_SIZE];
-        flushTlb(tempSavedTlb);
-        savedTlb = tempSavedTlb;
+        flushTlb(savedTlb);
     #endif
 }
 
@@ -460,12 +451,10 @@ Thread::RestoreUserState()
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++)
         machine->WriteRegister(i, userRegisters[i]);
 
-        DEBUG('a',"RestoreUserState\n");
+        DEBUG('t',"RestoreUserState\n");
     #ifdef USE_TLB
-        for(unsigned i = 0; i < TLB_SIZE; i++){
-            // printf("RestoreUserState %u\n", i);
+        for(unsigned i = 0; i < TLB_SIZE; i++)
             machine->tlb[i] = savedTlb[i];
-        }
     #endif
 }
 
