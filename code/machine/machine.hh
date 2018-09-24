@@ -31,9 +31,9 @@
 const unsigned PAGE_SIZE = SECTOR_SIZE;  ///< Set the page size equal to the
                                          ///< disk sector size, for
                                          ///< simplicity.
-const unsigned NUM_PHYS_PAGES = 512;
+const unsigned NUM_PHYS_PAGES = 256;
 const unsigned MEMORY_SIZE = NUM_PHYS_PAGES * PAGE_SIZE;
-const unsigned TLB_SIZE = 16;  ///< if there is a TLB, make it small.
+const unsigned TLB_SIZE = 32;  ///< if there is a TLB, make it small.
 
 enum ExceptionType {
     NO_EXCEPTION = 0,             // Everything ok!
@@ -171,9 +171,23 @@ public:
     TranslationEntry *pageTable;
     unsigned pageTableSize;
 
+    //get and set for reads and misses
+#ifdef HIT_RATIO
+    void setReads(float value);
+    float getReads();
+
+    void setMisses(float value);
+    float getMisses();
+#endif
+
   private:
     bool singleStep;  ///< Drop back into the debugger after each simulated
                       ///< instruction.
+#ifdef HIT_RATIO
+    float reads;
+    float misses;
+#endif
+
 };
 
 extern void ExceptionHandler(ExceptionType which);

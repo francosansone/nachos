@@ -220,6 +220,9 @@ Machine::Translate(unsigned virtAddr, unsigned *physAddr,
         }
         entry = &pageTable[vpn];
     } else {
+        #ifdef HIT_RATIO
+            reads++;
+        #endif
         for (entry = NULL, i = 0; i < TLB_SIZE; i++)
             if (tlb[i].valid && tlb[i].virtualPage == vpn) {
                 entry = &tlb[i];  // FOUND!
@@ -228,6 +231,9 @@ Machine::Translate(unsigned virtAddr, unsigned *physAddr,
         if (entry == NULL) {  // Not found.
             DEBUG('a',
                   "*** no valid TLB entry found for this virtual page!\n");
+            #ifdef HIT_RATIO
+                misses++;
+            #endif
             return PAGE_FAULT_EXCEPTION;  // Really, this is a TLB fault, the
                                           // page may be in memory, but not
                                           // in the TLB.
@@ -255,3 +261,29 @@ Machine::Translate(unsigned virtAddr, unsigned *physAddr,
     DEBUG('a', "phys addr = 0x%X\n", *physAddr);
     return NO_EXCEPTION;
 }
+
+#ifdef HIT_RATIO
+void
+Machine::setReads(float value)
+{
+    reads = value;
+}
+
+float
+Machine::getReads()
+{
+    return reads;
+}
+
+void
+Machine::setMisses(float value)
+{
+    misses = value;
+}
+
+float
+Machine::getMisses()
+{
+    return misses;
+}
+#endif

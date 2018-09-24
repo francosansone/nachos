@@ -1,0 +1,129 @@
+Este test se corre 256 páginas físicas de memoria, y se ejecutan
+desde el shell los programas:
+Test 1:
+1) matmult
+2) filetest
+3) halt
+
+Test 2:
+1) matmult
+2) sort
+3) halt
+
+Con TLB_SIZE = 4 hit ratio para:
+· Test 1 92%
+
+Ejecución:
+$ ../vmem/nachos -x shell
+--> matmult
+Hello world
+--> filetest
+Hello world
+Hello world
+filefile--> halt
+
+misses: 62920.000000, reads: 827171.000000 hit ratio: 92
+Machine halting!
+
+Ticks: total 613109058, idle 612367600, system 77170, user 664288
+Disk I/O: reads 0, writes 0
+Console I/O: reads 22, writes 57
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+· Test 2 91%
+
+Ejecución:
+$ ../vmem/nachos -x shell
+--> matmult
+Hello world
+--> sort
+--> halt
+
+misses: 1384166.000000, reads: 16777216.000000 hit ratio: 91
+Machine halting!
+
+Ticks: total 259191058, idle 237999742, system 2120800, user 19070516
+Disk I/O: reads 0, writes 0
+Console I/O: reads 18, writes 25
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+Con TLB_SIZE = 16 hit ratio para:
+
+· Test 1 98%
+
+Ejecución:
+../vmem/nachos -x shell
+--> matmult
+Hello world
+--> filetest
+Hello world
+Hello world
+filefile--> halt
+
+misses: 8367.000000, reads: 745595.000000 hit ratio: 98
+Machine halting!
+
+Ticks: total 341064277, idle 340383431, system 71110, user 609736
+Disk I/O: reads 0, writes 0
+Console I/O: reads 22, writes 57
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+· Test 2 99%
+
+$ ../vmem/nachos -x shell
+--> matmult
+Hello world
+--> sort
+--> halt
+
+misses: 18712.000000, reads: 16777216.000000 hit ratio: 99
+Machine halting!
+
+Ticks: total 349392065, idle 329717828, system 1969130, user 17705107
+Disk I/O: reads 0, writes 0
+Console I/O: reads 18, writes 25
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+Con TLB_SIZE = 32 hit ratio para:
+
+· Test 1 99%
+
+Ejecución:
+$ ../vmem/nachos -x shell
+--> matmult
+Hello world
+--> filetest
+Hello world
+Hello world
+filefile--> halt
+
+misses: 140.000000, reads: 730645.000000 hit ratio: 99%
+Machine halting!
+
+Ticks: total 253856471, idle 253184735, system 70220, user 601516
+Disk I/O: reads 0, writes 0
+Console I/O: reads 22, writes 57
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+· Test 2 99%
+
+Ejecución:
+$ ../vmem/nachos -x shell
+--> matmult
+Hello world
+--> sort
+--> halt
+
+misses: 1632.000000, reads: 16777216.000000 hit ratio: 99
+Machine halting!
+
+Ticks: total 608296758, idle 588641481, system 1967250, user 17688027
+Disk I/O: reads 0, writes 0
+Console I/O: reads 18, writes 25
+Paging: faults 0
+Network I/O: packets received 0, sent 0
