@@ -18,8 +18,8 @@ int
 main(int argc, char **argv)
 {
     char *a = "Hello world\n";
-    Write(a,29,STANDAR_OUTPUT);
-    Write(a,29,STANDAR_OUTPUT);
+    Write(a,12,STANDAR_OUTPUT);
+    Write(a,12,STANDAR_OUTPUT);
     const char *arg1 = "Hola Mundo\n";
     for(unsigned i = 0; i < argc; i++){
       arg1 = argv[i];
