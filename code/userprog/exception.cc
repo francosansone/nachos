@@ -88,6 +88,14 @@ ExceptionHandler(ExceptionType which)
         switch (type) {
             case SC_Halt: {
                 DEBUG('a', "Shutdown, initiated by user program.\n");
+                #ifdef HIT_RATIO
+                    float misses = machine->getMisses();
+                    float reads = machine->getReads();
+                    float hitRatio =  misses / reads;
+                    int intHitRatio = 100 - hitRatio * 100;
+                    printf("\nmisses: %f, reads: %f hit ratio: %d \n",
+                        misses, reads, intHitRatio);
+                #endif
                 interrupt->Halt();
                 break;
             }
@@ -230,10 +238,15 @@ ExceptionHandler(ExceptionType which)
         * PAGE_SIZE){
             printf("No more memory %d %d %d\n", which, type,
                         (currentThread -> space) ->  getNumPages() * PAGE_SIZE);
-            //What to do now?
         }
-        //define insertTLB
-        insertTLB(currentThread -> space -> getPageTable(vpn));
+        TranslationEntry t = currentThread -> space -> getPageTable(vpn);
+        #ifdef DEMAND_LOADING
+            if(t.physicalPage == -1)
+                currentThread -> space -> loadVPNFromBinary(vaddr);
+        #endif
+        #ifdef USE_TLB
+            insertTLB(t);
+        #endif
     } else if(which == READ_ONLY_EXCEPTION){
         printf("READ ONLY EXCEPTION\n");
         currentThread->Finish(-1);

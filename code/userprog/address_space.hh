@@ -16,9 +16,10 @@
 
 #include "filesys/file_system.hh"
 #include "machine/translation_entry.hh"
+#include "bin/noff.h"
 
 
-const unsigned USER_STACK_SIZE = 1024;  ///< Increase this as necessary!
+const unsigned USER_STACK_SIZE = 2048;  ///< Increase this as necessary!
 
 
 class AddressSpace {
@@ -49,6 +50,8 @@ public:
         return pageTable[vpn];
     }
 
+    void loadVPNFromBinary(int vpn);
+
 private:
 
     /// Assume linear page table translation for now!
@@ -56,6 +59,11 @@ private:
 
     /// Number of pages in the virtual address space.
     unsigned numPages;
+
+    // for the demand load, I need to keep the binary open
+    NoffHeader noffH;
+    OpenFile *executable;
+
 
 };
 

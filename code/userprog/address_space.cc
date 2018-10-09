@@ -17,9 +17,9 @@
 
 
 #include "address_space.hh"
-#include "bin/noff.h"
 #include "threads/system.hh"
 #include "bitmap.hh"
+#include "filesys/open_file.hh"
 
 #define BITS_OFFSET 7
 #define OR_OFFSET 127 //128 direcciones por pagina
@@ -58,9 +58,9 @@ SwapHeader(NoffHeader *noffH)
 ///
 /// * `executable` is the file containing the object code to load into
 ///   memory.
-AddressSpace::AddressSpace(OpenFile *executable)
+AddressSpace::AddressSpace(OpenFile *exec)
 {
-    NoffHeader noffH;
+    executable = exec;
     unsigned   size;
 
     executable->ReadAt((char *) &noffH, sizeof noffH, 0);
@@ -92,45 +92,87 @@ AddressSpace::AddressSpace(OpenFile *executable)
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
           // Cambiamos para cargar mas de un programa en mainMemory
-        pageTable[i].physicalPage = bitmap -> Find();
-        DEBUG('a', "%d ", (int)pageTable[i].physicalPage);
-        ASSERT((int)pageTable[i].physicalPage != -1);
-        pageTable[i].valid        = true;
-        pageTable[i].use          = false;
-        pageTable[i].dirty        = false;
-        pageTable[i].readOnly     = false;
-        //memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);
-        bzero(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]),PAGE_SIZE);
+        #ifdef DEMAND_LOADING
+            pageTable[i].physicalPage = -1;
+            pageTable[i].valid = false;
+        #else
+            pageTable[i].physicalPage = bitmap -> Find();
+            DEBUG('a', "%d ", (int)pageTable[i].physicalPage);
+            ASSERT((int)pageTable[i].physicalPage != -1);
+            pageTable[i].valid        = true;
+            pageTable[i].use          = false;
+            pageTable[i].dirty        = false;
+            pageTable[i].readOnly     = false;
+            //memset(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]), 0, PAGE_SIZE);
+            bzero(&(machine->mainMemory[pageTable[i].physicalPage * PAGE_SIZE]),PAGE_SIZE);
+        #endif
     }
 
-    // Then, copy in the code and data segments into memory.
-    DEBUG('a', "Initializing code segment, size %d\n", noffH.code.size);
-    for (int i=0; i<noffH.code.size; i++) {
-        char c;
-        executable->ReadAt(&c, 1, noffH.code.inFileAddr + i); //leo de 1 byte el seg de codigo
-        int virtualAddr = noffH.code.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
-        //ahora desgloso la direccion virtual
-        int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
-        int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
-        int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
-        DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
-        machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
+    #ifndef DEMAND_LOADING
+        // Then, copy in the code and data segments into memory.
+        DEBUG('a', "Initializing code segment, size %d\n", noffH.code.size);
+        for (int i=0; i<noffH.code.size; i++) {
+            char c;
+            executable->ReadAt(&c, 1, noffH.code.inFileAddr + i); //leo de 1 byte el seg de codigo
+            int virtualAddr = noffH.code.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
+            //ahora desgloso la direccion virtual
+            int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
+            int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
+            int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE) + offset;    //pagina fisica de la pagina virtual
+            DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
+            machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
+        }
+
+
+        DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
+        for (int i=0; i<noffH.initData.size; i++) {
+            char c;
+            executable->ReadAt(&c, 1, noffH.initData.inFileAddr + i); //leo de 1 byte el seg de codigo
+            int virtualAddr = noffH.initData.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
+            //ahora desgloso la direccion virtual
+            int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
+            int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
+            int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE);    //pagina fisica de la pagina virtual
+            int physicalAddrNum = physicalPageNum + offset;  //direccion fisica
+            DEBUG('a',"Leo el bloque de datos %d\n", physicalAddrNum);
+            machine->mainMemory[physicalAddrNum] = c; //escribo en la pagina fisica correspon
+        }
+    #endif
+}
+
+void
+AddressSpace::loadVPNFromBinary(int vaddr)
+{
+    Segment segment;
+    bool uninitData = false;
+    if(vaddr >= noffH.code.virtualAddr &&
+        vaddr < noffH.code.virtualAddr + noffH.code.size){
+            segment = noffH.code;
+        }
+    else if(vaddr >= noffH.initData.virtualAddr &&
+        vaddr < noffH.initData.virtualAddr + noffH.initData.size){
+            segment = noffH.initData;
+        }
+    else{
+        segment = noffH.uninitData;
+        uninitData = true;
     }
-
-
-    DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
-    for (int i=0; i<noffH.initData.size; i++) {
-        char c;
-        executable->ReadAt(&c, 1, noffH.initData.inFileAddr + i); //leo de 1 byte el seg de codigo
-        int virtualAddr = noffH.initData.virtualAddr + i; //DIRECCION virtual correspondiente a ese byte de codigo
-        //ahora desgloso la direccion virtual
-        int virtualPageNum = virtualAddr / PAGE_SIZE;    //numero de pagina de la direccion
-        int offset = virtualAddr % PAGE_SIZE;             //offset de la direccion
-        int physicalPageNum = (pageTable[virtualPageNum].physicalPage * PAGE_SIZE);    //pagina fisica de la pagina virtual
+    int vpn = vaddr / PAGE_SIZE;
+    int offset = vaddr % PAGE_SIZE;
+    pageTable[vpn].physicalPage = bitmap -> Find();
+    int readed = vpn*PAGE_SIZE;
+    for (int i = 0;
+            (i < (int)PAGE_SIZE)
+                && (i < (int)(executable->Length() - vaddr - segment.virtualAddr));
+             i++){
+        char c = 0;
+        if(!uninitData) // Load data
+            executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
+        int physicalPageNum = (pageTable[vpn].physicalPage * PAGE_SIZE);    //pagina fisica de la pagina virtual
         int physicalAddrNum = physicalPageNum + offset;  //direccion fisica
-        DEBUG('a',"Leo el bloque de datos %d\n", physicalAddrNum);
-        machine->mainMemory[physicalAddrNum] = c; //escribo en la pagina fisica correspon
+        machine->mainMemory[physicalAddrNum] = c;
     }
+    pageTable[vpn].valid = true;
 
 }
 
