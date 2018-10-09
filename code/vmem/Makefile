@@ -14,7 +14,7 @@
 # limitation of liability and disclaimer of warranty provisions.
 
 DEFINES      = -DUSER_PROGRAM  -DFILESYS_NEEDED -DFILESYS_STUB -DVMEM \
-               -DUSE_TLB -DDFS_TICKS_FIX -DHIT_RATIO
+               -DUSE_TLB -DDFS_TICKS_FIX -DDEMAND_LOADING
 INCLUDE_DIRS = -I.. -I../filesys -I../bin -I../userprog -I../threads \
                -I../machine
 HFILES       = $(THREAD_H) $(USERPROG_H) $(VMEM_H)
