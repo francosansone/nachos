@@ -239,13 +239,13 @@ ExceptionHandler(ExceptionType which)
             printf("No more memory %d %d %d\n", which, type,
                         (currentThread -> space) ->  getNumPages() * PAGE_SIZE);
         }
-        TranslationEntry t = currentThread -> space -> getPageTable(vpn);
+        // TranslationEntry t = currentThread -> space -> getPageTable(vpn);
         #ifdef DEMAND_LOADING
-            if(t.physicalPage == -1)
+            if(currentThread -> space -> getPageTable(vpn).physicalPage == -1)
                 currentThread -> space -> loadVPNFromBinary(vaddr);
         #endif
         #ifdef USE_TLB
-            insertTLB(t);
+            insertTLB(currentThread -> space -> getPageTable(vpn));
         #endif
     } else if(which == READ_ONLY_EXCEPTION){
         printf("READ ONLY EXCEPTION\n");
