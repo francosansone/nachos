@@ -162,7 +162,7 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     int readed = vpn*PAGE_SIZE;
     for (int i = 0;
             (i < (int)PAGE_SIZE)
-                && (i < (int)(executable->Length() - vaddr - segment.virtualAddr));
+                && ((executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
              i++){
         char c = 0;
         if(!uninitData) // Load data
