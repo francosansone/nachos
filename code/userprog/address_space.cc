@@ -145,12 +145,12 @@ AddressSpace::loadVPNFromBinary(int vaddr)
 {
     Segment segment;
     bool uninitData = false;
-    if(vaddr >= noffH.code.virtualAddr &&
-        vaddr < noffH.code.virtualAddr + noffH.code.size){
+    if(vaddr >= noffH.code.virtualAddr /*&&
+        vaddr < noffH.code.virtualAddr + noffH.code.size*/){
             segment = noffH.code;
         }
-    else if(vaddr >= noffH.initData.virtualAddr &&
-        vaddr < noffH.initData.virtualAddr + noffH.initData.size){
+    else if(vaddr >= noffH.initData.virtualAddr /*&&
+        vaddr < noffH.initData.virtualAddr + noffH.initData.size*/){
             segment = noffH.initData;
         }
     else{
