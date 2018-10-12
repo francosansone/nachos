@@ -158,7 +158,6 @@ AddressSpace::loadVPNFromBinary(int vaddr)
         uninitData = true;
     }
     int vpn = vaddr / PAGE_SIZE;
-    int offset = vaddr % PAGE_SIZE;
     pageTable[vpn].physicalPage = bitmap -> Find();
     int readed = vpn*PAGE_SIZE;
     for (int i = 0;
@@ -168,12 +167,14 @@ AddressSpace::loadVPNFromBinary(int vaddr)
         char c = 0;
         if(!uninitData) // Load data
             executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
-        int physicalPageNum = (pageTable[vpn].physicalPage * PAGE_SIZE);    //pagina fisica de la pagina virtual
-        int physicalAddrNum = physicalPageNum + offset;  //direccion fisica
+        int physicalPageOffset = (pageTable[vpn].physicalPage * PAGE_SIZE);
+        int physicalAddrNum = physicalPageOffset + i;
         machine->mainMemory[physicalAddrNum] = c;
     }
     pageTable[vpn].valid = true;
-
+    pageTable[vpn].readOnly = false;
+    pageTable[vpn].dirty = false;
+    pageTable[vpn].use = false;
 }
 
 /// Deallocate an address space.
