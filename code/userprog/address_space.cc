@@ -145,12 +145,10 @@ AddressSpace::loadVPNFromBinary(int vaddr)
 {
     Segment segment;
     bool uninitData = false;
-    if(vaddr >= noffH.code.virtualAddr /*&&
-        vaddr < noffH.code.virtualAddr + noffH.code.size*/){
+    if(vaddr >= noffH.code.virtualAddr){
             segment = noffH.code;
         }
-    else if(vaddr >= noffH.initData.virtualAddr /*&&
-        vaddr < noffH.initData.virtualAddr + noffH.initData.size*/){
+    else if(vaddr >= noffH.initData.virtualAddr){
             segment = noffH.initData;
         }
     else{
@@ -162,7 +160,7 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     int readed = vpn*PAGE_SIZE;
     for (int i = 0;
             (i < (int)PAGE_SIZE)
-                && ((executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
+                && (((int)executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
              i++){
         char c = 0;
         if(!uninitData) // Load data
