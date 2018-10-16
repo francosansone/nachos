@@ -241,7 +241,7 @@ ExceptionHandler(ExceptionType which)
         }
         // TranslationEntry t = currentThread -> space -> getPageTable(vpn);
         #ifdef DEMAND_LOADING
-            if(currentThread -> space -> getPageTable(vpn).physicalPage == -1)
+            if((int)currentThread -> space -> getPageTable(vpn).physicalPage == -1)
                 currentThread -> space -> loadVPNFromBinary(vaddr);
         #endif
         #ifdef USE_TLB
