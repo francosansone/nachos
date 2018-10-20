@@ -221,6 +221,9 @@ ExceptionHandler(ExceptionType which)
                 t -> space = tas;
                 SpaceId pid = t -> getPid();
                 DEBUG('q', "El hilo %d ha sido creado\n", pid);
+                #ifdef VMEM
+                    coremap->addAddrSpace(t->getPid(), t->space);
+                #endif
                 //leer args a kernel
                 char **args = SaveArgs(r5); // Leo los argumentos
                 t->Fork(StartProc, args);
@@ -241,8 +244,8 @@ ExceptionHandler(ExceptionType which)
         }
         // TranslationEntry t = currentThread -> space -> getPageTable(vpn);
         #ifdef DEMAND_LOADING
-            if((int)currentThread -> space -> getPageTable(vpn).physicalPage == -1)
-                currentThread -> space -> loadVPNFromBinary(vaddr);
+            if((int)currentThread -> space -> getPageTable(vpn).physicalPage < 0)
+                currentThread -> space -> loadVPN(vaddr);
         #endif
         #ifdef USE_TLB
             insertTLB(currentThread -> space -> getPageTable(vpn));
