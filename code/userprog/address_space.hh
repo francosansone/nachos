@@ -50,7 +50,7 @@ public:
         return pageTable[vpn];
     }
 
-    void loadVPNFromBinary(int vpn);
+    void loadVPN(int vpn);
 
 private:
 

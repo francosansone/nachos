@@ -35,7 +35,9 @@ extern Timer *timer;                 ///< The hardware alarm clock.
 
 #ifdef USER_PROGRAM
 #include "machine/machine.hh"
+#include "userprog/bitmap.hh"
 extern Machine* machine;  // User program memory and registers.
+extern BitMap *bitmap;
 #endif
 
 #ifdef FILESYS_NEEDED  // *FILESYS* or 8FILESYS_STUB*.
@@ -51,6 +53,11 @@ extern SynchDisk *synchDisk;
 #ifdef NETWORK
 #include "network/post.hh"
 extern PostOffice *postOffice;
+#endif
+
+#ifdef VMEM
+#include "vmem/coremap.hh"
+extern Coremap *coremap;
 #endif
 
 //#ifdef SYNCH_CONSOLE

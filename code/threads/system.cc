@@ -37,11 +37,18 @@ SynchDisk *synchDisk;
 #ifdef USER_PROGRAM  // Requires either *FILESYS* or *FILESYS_STUB*.
 Machine *machine;  ///< User program memory and registers.
 SynchConsole *synchConsole;
+BitMap *bitmap; //cantidad de paginas
+#endif
+
+#ifdef VMEM
+Coremap *coremap;
 #endif
 
 #ifdef NETWORK
 PostOffice *postOffice;
 #endif
+
+// Coremap *coremap = new Coremap(NUM_PHYS_PAGES);
 
 // External definition, to allow us to take a pointer to this function.
 extern void Cleanup();
@@ -174,6 +181,11 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);  // This must come first.
     synchConsole = new SynchConsole("in", "out");
+    bitmap = new BitMap(NUM_PHYS_PAGES);
+#endif
+
+#ifdef VMEM
+    coremap = new Coremap((int)NUM_PHYS_PAGES);
 #endif
 
 #ifdef FILESYS

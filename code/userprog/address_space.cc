@@ -20,11 +20,10 @@
 #include "threads/system.hh"
 #include "bitmap.hh"
 #include "filesys/open_file.hh"
+#include "filesys/file_system.hh"
 
 #define BITS_OFFSET 7
 #define OR_OFFSET 127 //128 direcciones por pagina
-
-BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
 /// Do little endian to big endian conversion on the bytes in the object file
 /// header, in case the file was generated on a little endian machine, and we
@@ -108,6 +107,26 @@ AddressSpace::AddressSpace(OpenFile *exec)
         #endif
     }
 
+    #ifdef VMEM
+        int pid = currentThread -> getPid();
+        char name[7] = "SWAP.";
+        //support until 99 process
+        if(pid % 10 < 10){
+            char _pid = pid + '0';
+            name[5] = _pid;
+            name[6] = '\0';
+        }
+        else{
+            int tens = pid / 10;
+            name[5] =  tens + '0';
+            int unit = pid % 10;
+            name[6] = unit + '0';
+            name[7] = '\0';
+        }
+        DEBUG('t', "Swap file created %s\n", name);
+        fileSystem -> Create(name, NUM_PHYS_PAGES*PAGE_SIZE);
+    #endif
+
     #ifndef DEMAND_LOADING
         // Then, copy in the code and data segments into memory.
         DEBUG('a', "Initializing code segment, size %d\n", noffH.code.size);
@@ -141,38 +160,58 @@ AddressSpace::AddressSpace(OpenFile *exec)
 }
 
 void
-AddressSpace::loadVPNFromBinary(int vaddr)
+AddressSpace::loadVPN(int vaddr)
 {
-    Segment segment;
-    bool uninitData = false;
-    if(vaddr >= noffH.code.virtualAddr){
-            segment = noffH.code;
-        }
-    else if(vaddr >= noffH.initData.virtualAddr){
-            segment = noffH.initData;
-        }
-    else{
-        segment = noffH.uninitData;
-        uninitData = true;
-    }
     int vpn = vaddr / PAGE_SIZE;
-    pageTable[vpn].physicalPage = bitmap -> Find();
-    int readed = vpn*PAGE_SIZE;
-    for (int i = 0;
-            (i < (int)PAGE_SIZE)
-                && (((int)executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
-             i++){
-        char c = 0;
-        if(!uninitData) // Load data
-            executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
-        int physicalPageOffset = (pageTable[vpn].physicalPage * PAGE_SIZE);
-        int physicalAddrNum = physicalPageOffset + i;
-        machine->mainMemory[physicalAddrNum] = c;
+    #ifdef VMEM
+        // int n = coremap->Find(currentThread->getPid());
+        // printf("\n%d\n", n);
+    #endif
+    if((int)pageTable[vpn].physicalPage == -1){
+        Segment segment;
+        bool uninitData = false;
+        if(vaddr >= noffH.code.virtualAddr){
+                segment = noffH.code;
+            }
+        else if(vaddr >= noffH.initData.virtualAddr){
+                segment = noffH.initData;
+            }
+        else{
+            segment = noffH.uninitData;
+            uninitData = true;
+        }
+        int find = bitmap -> Find();
+        if(find == -1){
+            //do something
+        }
+        else{
+            pageTable[vpn].physicalPage = find;
+            int readed = vpn*PAGE_SIZE;
+            for (int i = 0;
+                    (i < (int)PAGE_SIZE)
+                        && (((int)executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
+                     i++){
+                char c = 0;
+                if(!uninitData) // Load data
+                    executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
+                int physicalPageOffset = (pageTable[vpn].physicalPage * PAGE_SIZE);
+                int physicalAddrNum = physicalPageOffset + i;
+                machine->mainMemory[physicalAddrNum] = c;
+            }
+            pageTable[vpn].valid = true;
+            pageTable[vpn].readOnly = false;
+            pageTable[vpn].dirty = false;
+            pageTable[vpn].use = false;
+            #ifdef VMEM
+                coremap->set(find, vpn, currentThread->getPid());
+            #endif
+        }
     }
-    pageTable[vpn].valid = true;
-    pageTable[vpn].readOnly = false;
-    pageTable[vpn].dirty = false;
-    pageTable[vpn].use = false;
+    else if((int)pageTable[vpn].physicalPage == -2){
+        //loadFromSwap(vpn);
+        printf("SWAP!!\n\n");
+        return;
+    }
 }
 
 /// Deallocate an address space.
