@@ -52,6 +52,10 @@ public:
 
     void loadVPN(int vpn);
 
+#ifdef VMEM
+    void saveInSwap(int vpn);
+#endif
+
 private:
 
     /// Assume linear page table translation for now!
@@ -63,7 +67,7 @@ private:
     // for the demand load, I need to keep the binary open
     NoffHeader noffH;
     OpenFile *executable;
-
+    char name[7];
 
 };
 

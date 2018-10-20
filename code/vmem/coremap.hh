@@ -23,12 +23,13 @@ public:
     ~Coremap();
     void set(unsigned phy, unsigned vpn, int pid);
     void addAddrSpace(int pid, AddressSpace *space);
-    int Find(int Pid);
+    int FindVictim();
     int selectVictim();
     //
 private:
     structCoremap *ramStatus;
     AddressSpace *threadAddrSpace[MAX_PROCS];
+    int nitems;
 };
 
 #endif

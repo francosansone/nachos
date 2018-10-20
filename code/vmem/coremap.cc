@@ -1,7 +1,10 @@
 #include "coremap.hh"
 
+static unsigned penalizedPage = 0;
+
 Coremap::Coremap(int nitems)
 {
+    this->nitems = nitems;
     ramStatus = new structCoremap[nitems];
     structCoremap memoryCell;
     memoryCell.virtualPage = -1;
@@ -38,9 +41,17 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
 }
 
 int
-Coremap::Find(int Pid)
+Coremap::FindVictim()
 {
-    return 0;
+    unsigned physicalPage = penalizedPage;
+    unsigned virtualPage = ramStatus[penalizedPage].virtualPage;
+    int pid = ramStatus[penalizedPage].pid;
+    threadAddrSpace[pid]->saveInSwap(virtualPage);
+    if(penalizedPage == nitems - 1)
+        penalizedPage = 0;
+    else
+        penalizedPage++;
+    return physicalPage;
 }
 
 int

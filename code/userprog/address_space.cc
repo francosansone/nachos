@@ -109,7 +109,11 @@ AddressSpace::AddressSpace(OpenFile *exec)
 
     #ifdef VMEM
         int pid = currentThread -> getPid();
-        char name[7] = "SWAP.";
+        name[0] = 'S';
+        name[1] = 'W';
+        name[2] = 'A';
+        name[3] = 'P';
+        name[4] = '.';
         //support until 99 process
         if(pid % 10 < 10){
             char _pid = pid + '0';
@@ -141,7 +145,6 @@ AddressSpace::AddressSpace(OpenFile *exec)
             DEBUG('a', "Leo el bloque de codigo %d\n",physicalPageNum);
             machine->mainMemory[physicalPageNum] = c; //escribo en la pagina fisica correspondiente
         }
-
 
         DEBUG('a', "Initializing data segment, size %d\n", noffH.initData.size);
         for (int i=0; i<noffH.initData.size; i++) {
@@ -183,6 +186,10 @@ AddressSpace::loadVPN(int vaddr)
         int find = bitmap -> Find();
         if(find == -1){
             //do something
+            #ifdef VMEM
+                int pen = coremap->FindVictim();
+                printf("\n\n\t***here call SWAP!!!***** %d\n\n", pen);
+            #endif
         }
         else{
             pageTable[vpn].physicalPage = find;
@@ -265,3 +272,19 @@ void AddressSpace::RestoreState()
     machine->pageTable     = pageTable;
     machine->pageTableSize = numPages;
 }
+
+#ifdef VMEM
+void
+AddressSpace::saveInSwap(int vpn)
+{
+    printf("saveInSwap\n");
+    int writeFrom = vpn*PAGE_SIZE;
+    unsigned phy = pageTable[vpn].physicalPage;
+    OpenFile *f = fileSystem -> Open(name);
+    for(unsigned i = 0; i < PAGE_SIZE; i++){
+        char c = machine->mainMemory[phy + i];
+        f->WriteAt(&c, 1, writeFrom + i);
+    }
+    pageTable[vpn].physicalPage = -2;
+}
+#endif
