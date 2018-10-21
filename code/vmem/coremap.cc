@@ -5,12 +5,12 @@ static unsigned penalizedPage = 0;
 Coremap::Coremap(int nitems)
 {
     this->nitems = nitems;
-    ramStatus = new structCoremap[nitems];
+    mainMemoryStatus = new structCoremap[nitems];
     structCoremap memoryCell;
     memoryCell.virtualPage = -1;
     memoryCell.pid = -1;
     for(int i = 0; i < nitems; i++){
-        ramStatus[i] = memoryCell;
+        mainMemoryStatus[i] = memoryCell;
     }
 }
 
@@ -25,8 +25,8 @@ Coremap::set(unsigned phy, unsigned vpn, int pid)
     structCoremap memoryCell;
     memoryCell.virtualPage = vpn;
     memoryCell.pid = pid;
-    ramStatus[phy] = memoryCell;
-    // printf("Coremap::set %u, %d\n", ramStatus[phy].virtualPage, ramStatus[phy].pid);
+    mainMemoryStatus[phy] = memoryCell;
+    // printf("Coremap::set %u, %d\n", mainMemoryStatus[phy].virtualPage, mainMemoryStatus[phy].pid);
 }
 
 void
@@ -44,14 +44,28 @@ int
 Coremap::FindVictim()
 {
     unsigned physicalPage = penalizedPage;
-    unsigned virtualPage = ramStatus[penalizedPage].virtualPage;
-    int pid = ramStatus[penalizedPage].pid;
-    threadAddrSpace[pid]->saveInSwap(virtualPage);
+    printf("FindVictim: %d\n", physicalPage);
+    unsigned virtualPage = mainMemoryStatus[penalizedPage].virtualPage;
+    int pid = mainMemoryStatus[penalizedPage].pid;
+    if(threadAddrSpace[pid] != NULL){
+        threadAddrSpace[pid]->saveInSwap(virtualPage);
+    }
     if(penalizedPage == nitems - 1)
         penalizedPage = 0;
     else
         penalizedPage++;
     return physicalPage;
+}
+
+int
+Coremap::getFromSwap(unsigned vpn, int pid, int phy)
+{
+    if(phy == -1){
+        phy = FindVictim();
+    }
+    set(phy, vpn, pid);
+    threadAddrSpace[pid]->loadFromSwap(vpn, phy);
+    return phy;
 }
 
 int

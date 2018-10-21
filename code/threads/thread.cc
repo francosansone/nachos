@@ -88,6 +88,7 @@ Thread::Thread(const char* threadName, bool join, int pr)
     cont = 2;           //contador de archivos abiertos
     Pid = ContPid;
     ContPid++;
+    printf("Creado el hilo %d\n", Pid);
     ThreadTable tt = {Pid, this};
     addThread(tt);
     #ifdef USE_TLB
@@ -120,6 +121,9 @@ Thread::~Thread()
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, STACK_SIZE * sizeof *stack);
     delete files;
+    #ifdef USER_PROGRAM
+        delete this->space;
+    #endif
 }
 
 /// Invoke `(*func)(arg)`, allowing caller and callee to execute

@@ -54,6 +54,8 @@ public:
 
 #ifdef VMEM
     void saveInSwap(int vpn);
+    void loadFromSwap(unsigned vpn, unsigned phy);
+    void createSwapFile(int pid);
 #endif
 
 private:

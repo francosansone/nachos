@@ -24,10 +24,11 @@ public:
     void set(unsigned phy, unsigned vpn, int pid);
     void addAddrSpace(int pid, AddressSpace *space);
     int FindVictim();
+    int getFromSwap(unsigned vpn, int pid, int phy);
     int selectVictim();
     //
 private:
-    structCoremap *ramStatus;
+    structCoremap *mainMemoryStatus;
     AddressSpace *threadAddrSpace[MAX_PROCS];
     int nitems;
 };

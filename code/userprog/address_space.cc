@@ -107,29 +107,9 @@ AddressSpace::AddressSpace(OpenFile *exec)
         #endif
     }
 
-    #ifdef VMEM
-        int pid = currentThread -> getPid();
-        name[0] = 'S';
-        name[1] = 'W';
-        name[2] = 'A';
-        name[3] = 'P';
-        name[4] = '.';
-        //support until 99 process
-        if(pid % 10 < 10){
-            char _pid = pid + '0';
-            name[5] = _pid;
-            name[6] = '\0';
-        }
-        else{
-            int tens = pid / 10;
-            name[5] =  tens + '0';
-            int unit = pid % 10;
-            name[6] = unit + '0';
-            name[7] = '\0';
-        }
-        DEBUG('t', "Swap file created %s\n", name);
-        fileSystem -> Create(name, NUM_PHYS_PAGES*PAGE_SIZE);
-    #endif
+    // #ifdef VMEM
+    //
+    // #endif
 
     #ifndef DEMAND_LOADING
         // Then, copy in the code and data segments into memory.
@@ -166,11 +146,22 @@ void
 AddressSpace::loadVPN(int vaddr)
 {
     int vpn = vaddr / PAGE_SIZE;
-    #ifdef VMEM
-        // int n = coremap->Find(currentThread->getPid());
-        // printf("\n%d\n", n);
-    #endif
     if((int)pageTable[vpn].physicalPage == -1){
+        int find = bitmap -> Find();
+        if(find == -1){
+            //do something
+        #ifdef VMEM
+            find = coremap->FindVictim();
+            printf("\n\n\t***here call SWAP!!!***** %d\n\n", find);
+            ASSERT(find >= 0);
+
+        #else
+            printf("No more memory\n");
+            return;
+        #endif
+        }
+        ASSERT(find >= 0);
+        pageTable[vpn].physicalPage = find;
         Segment segment;
         bool uninitData = false;
         if(vaddr >= noffH.code.virtualAddr){
@@ -183,41 +174,36 @@ AddressSpace::loadVPN(int vaddr)
             segment = noffH.uninitData;
             uninitData = true;
         }
-        int find = bitmap -> Find();
-        if(find == -1){
-            //do something
-            #ifdef VMEM
-                int pen = coremap->FindVictim();
-                printf("\n\n\t***here call SWAP!!!***** %d\n\n", pen);
-            #endif
+        int readed = vpn*PAGE_SIZE;
+        for (int i = 0;
+                (i < (int)PAGE_SIZE)
+                    && (((int)executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
+                 i++){
+            char c = 0;
+            if(!uninitData) // Load data
+                executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
+            int physicalPageOffset = (pageTable[vpn].physicalPage * PAGE_SIZE);
+            int physicalAddrNum = physicalPageOffset + i;
+            machine->mainMemory[physicalAddrNum] = c;
         }
-        else{
-            pageTable[vpn].physicalPage = find;
-            int readed = vpn*PAGE_SIZE;
-            for (int i = 0;
-                    (i < (int)PAGE_SIZE)
-                        && (((int)executable->Length() > (i+ segment.inFileAddr + readed - segment.virtualAddr)));
-                     i++){
-                char c = 0;
-                if(!uninitData) // Load data
-                    executable->ReadAt(&c, 1, i + segment.inFileAddr + readed - segment.virtualAddr);
-                int physicalPageOffset = (pageTable[vpn].physicalPage * PAGE_SIZE);
-                int physicalAddrNum = physicalPageOffset + i;
-                machine->mainMemory[physicalAddrNum] = c;
-            }
-            pageTable[vpn].valid = true;
-            pageTable[vpn].readOnly = false;
-            pageTable[vpn].dirty = false;
-            pageTable[vpn].use = false;
-            #ifdef VMEM
-                coremap->set(find, vpn, currentThread->getPid());
-            #endif
-        }
+        pageTable[vpn].valid = true;
+        pageTable[vpn].readOnly = false;
+        pageTable[vpn].dirty = false;
+        pageTable[vpn].use = false;
+        #ifdef VMEM
+            coremap->set(find, vpn, currentThread->getPid());
+        #endif
+
     }
     else if((int)pageTable[vpn].physicalPage == -2){
-        //loadFromSwap(vpn);
-        printf("SWAP!!\n\n");
-        return;
+        #ifdef VMEM
+            printf("SWAP!!\n\n");
+            int find = coremap->getFromSwap(vpn,
+                currentThread->getPid(),
+                bitmap->Find());
+            ASSERT(find >= 0);
+            return;
+        #endif
     }
 }
 
@@ -227,6 +213,7 @@ AddressSpace::loadVPN(int vaddr)
 AddressSpace::~AddressSpace()
 {
     delete [] pageTable;
+    delete executable;
 }
 
 /// Set the initial values for the user-level register set.
@@ -275,16 +262,75 @@ void AddressSpace::RestoreState()
 
 #ifdef VMEM
 void
+AddressSpace::createSwapFile(int pid)
+{
+    name[0] = 'S';
+    name[1] = 'W';
+    name[2] = 'A';
+    name[3] = 'P';
+    name[4] = '.';
+    //support until 99 process
+    if(pid % 10 < 10){
+        char _pid = pid + '0';
+        name[5] = _pid;
+        name[6] = '\0';
+    }
+    else{
+        int tens = pid / 10;
+        name[5] =  tens + '0';
+        int unit = pid % 10;
+        name[6] = unit + '0';
+        name[7] = '\0';
+    }
+    DEBUG('t', "Swap file created %s\n", name);
+    fileSystem -> Create(name, NUM_PHYS_PAGES*PAGE_SIZE);
+    printf("created %s!!\n", name);
+}
+
+void
 AddressSpace::saveInSwap(int vpn)
 {
     printf("saveInSwap\n");
-    int writeFrom = vpn*PAGE_SIZE;
     unsigned phy = pageTable[vpn].physicalPage;
+    if((int)phy < 0){
+        printf("notSwap %d\n", phy);
+        return;
+    }
+    unsigned physicalPageOffset = phy*PAGE_SIZE;
+    int writeFrom = vpn*PAGE_SIZE;
     OpenFile *f = fileSystem -> Open(name);
     for(unsigned i = 0; i < PAGE_SIZE; i++){
-        char c = machine->mainMemory[phy + i];
+        char c = 0;
+        c = machine->mainMemory[physicalPageOffset + i];
         f->WriteAt(&c, 1, writeFrom + i);
     }
+    #ifdef USE_TLB
+        if(this == currentThread->space){
+            for (int i = 0; i < TLB_SIZE; i++){
+                if (machine->tlb[i].valid && machine->tlb[i].virtualPage == vpn) {
+                    pageTable[vpn] = machine->tlb[i];
+                    machine->tlb[i].valid = false;
+                }
+            }
+        }
+    #endif
+    delete f;
     pageTable[vpn].physicalPage = -2;
+}
+
+void
+AddressSpace::loadFromSwap(unsigned vpn, unsigned phy)
+{
+    printf("loadFromSwap %s\n", name);
+    int readFrom = vpn*PAGE_SIZE;
+    OpenFile *f = fileSystem -> Open(name);
+    unsigned physicalPageOffset = phy*PAGE_SIZE;
+    for(unsigned i = 0; i < PAGE_SIZE; i++){
+        char c = 0;
+        f->ReadAt(&c, 1, readFrom + i);
+        machine -> mainMemory[physicalPageOffset + i] = c;
+    }
+    delete f;
+    pageTable[vpn].physicalPage = phy;
 }
 #endif
