@@ -460,6 +460,7 @@ Thread::RestoreUserState()
         for(unsigned i = 0; i < TLB_SIZE; i++)
             machine->tlb[i] = savedTlb[i];
     #endif
+    DEBUG('t',"RestoreUserState finish\n");
 }
 
 #endif

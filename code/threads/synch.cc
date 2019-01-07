@@ -63,6 +63,7 @@ Semaphore::P()
     while (value == 0) {  // Semaphore not available.
         queue->Append(currentThread);  // So go to sleep.
         currentThread->Sleep();
+        printf("Here sleep!\n");
     }
     value--;  // Semaphore available, consume its value.
 
@@ -92,7 +93,7 @@ Semaphore::V()
 /// Note -- without a correct implementation of `Condition::Wait`, the test
 /// case in the network assignment will not work!
 
-//------------------------------------------------------------------------------    
+//------------------------------------------------------------------------------
 //modificaciones correspondientes al ejercicio 1
 
 
@@ -117,7 +118,7 @@ Lock::Acquire()
 {
     //si el hilo posee el semaforo, pum!
     ASSERT(!IsHeldByCurrentThread());
-    
+
     // Inversion de prioridades
     // El hilo verifica si algun hilo de menor prioridad tiene el lock,
     // de tenerlo, le asigna provisoriamente su priodad y lo inserta
@@ -131,22 +132,22 @@ Lock::Acquire()
         ThreadHasLock -> setPriority(currentThread -> getPriority());
         if(ThreadHasLock -> getStatus() == 2)
             scheduler -> moveThread(ThreadHasLock, oldPr);
-       
+
     }
     //#endif
-    
+
     sem->P();
     ThreadHasLock = currentThread;
 }
 
-//Libero el lock para que un proceso pueda avanzar y pongo NULL a 
+//Libero el lock para que un proceso pueda avanzar y pongo NULL a
 //ThreadHasLock, lo cual tiene sentido, nadie tiene el lock
 void
 Lock::Release()
 {
     //si el hilo NO posee el semaforo, pum!
-    ASSERT(IsHeldByCurrentThread());  
-    // Inversion de prioridades. No es necesario evaluar si 
+    ASSERT(IsHeldByCurrentThread());
+    // Inversion de prioridades. No es necesario evaluar si
     // SCHED_PRIORITYINHERITANCE esta definida, puesto que de
     // no estarle, changePr es false
     if(changePr)
@@ -164,8 +165,8 @@ Lock::IsHeldByCurrentThread()
 {
     return currentThread == ThreadHasLock;
 }
-    
-    
+
+
 
 //Asigno memoria y defino las variables necesarias
 Condition::Condition(const char *debugName, Lock *conditionLock)
@@ -189,10 +190,10 @@ void
 Condition::Wait()
 {
     ASSERT(CopyLock -> IsHeldByCurrentThread());
-    Semaphore *sem = new Semaphore("sem",0); 
-    queueSem -> Append(sem);       
-    CopyLock -> Release();         
-    sem -> P(); 
+    Semaphore *sem = new Semaphore("sem",0);
+    queueSem -> Append(sem);
+    CopyLock -> Release();
+    sem -> P();
     CopyLock -> Acquire();
     //delete sem;
 
@@ -225,9 +226,9 @@ Condition::Broadcast()
 
 }
 
-//------------------------------------------------------------------------------    
+//------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------    
+//------------------------------------------------------------------------------
 //modificaciones correspondientes al ejercicio 2
 
 //Asigno memoria y defino las variables necesarias
@@ -265,14 +266,14 @@ Puerto::Send(int mensaje)
 }
 
 
-//Tomo el lock, verifico si hay mensajes. Cuando los haya, lo copio, envio la 
+//Tomo el lock, verifico si hay mensajes. Cuando los haya, lo copio, envio la
 //señal correspondiente y libero el lock.
 void
 Puerto::Receive(int *mensaje)
 {
     lock -> Acquire();
     while(!HayMensaje)        //Espera mientras no haya mensajes
-        Buff_vacio -> Wait(); 
+        Buff_vacio -> Wait();
     *mensaje = Buff;
     DEBUG('s',"Se recibio el mensaje %d por el puerto \"%s\"\n", *mensaje, name);
     HayMensaje = false;
@@ -281,10 +282,4 @@ Puerto::Receive(int *mensaje)
 }
 
 
-//------------------------------------------------------------------------------    
-
-
-
-
-
-
+//------------------------------------------------------------------------------

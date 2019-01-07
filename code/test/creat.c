@@ -13,6 +13,7 @@ int main(){
 //    int ret1 = Join(pid1);
     int ret2 = Join(pid2);
     Create("Holan.txt");
+    Write("SALIENDO!", 10, 1);
 //    Halt();
     Exit(0);
-}    
+}

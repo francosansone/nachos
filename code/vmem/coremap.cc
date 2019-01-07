@@ -1,10 +1,11 @@
 #include "coremap.hh"
+#define COREMAP_DEBUG 1
 
 static unsigned penalizedPage = 0;
 
-Coremap::Coremap(int nitems)
+Coremap::Coremap(int _nitems)
 {
-    this->nitems = nitems;
+    this->nitems = _nitems;
     mainMemoryStatus = new structCoremap[nitems];
     structCoremap memoryCell;
     memoryCell.virtualPage = -1;
@@ -22,16 +23,20 @@ Coremap::~Coremap()
 void
 Coremap::set(unsigned phy, unsigned vpn, int pid)
 {
+    printf("Coremap::set\n");
     structCoremap memoryCell;
     memoryCell.virtualPage = vpn;
     memoryCell.pid = pid;
     mainMemoryStatus[phy] = memoryCell;
-    // printf("Coremap::set %u, %d\n", mainMemoryStatus[phy].virtualPage, mainMemoryStatus[phy].pid);
+    #if 0 //COREMAP_DEBUG
+        printf("Coremap::set %u, %d\n", mainMemoryStatus[phy].virtualPage, mainMemoryStatus[phy].pid);
+    #endif
 }
 
 void
 Coremap::addAddrSpace(int pid, AddressSpace *space)
 {
+    printf("Coremap::addAddrSpace\n");
     if(pid >= MAX_PROCS){
         // machine->RaiseException(ILLEGAL_INSTR_EXCEPTION, -1);
         return;
@@ -43,14 +48,17 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
 int
 Coremap::FindVictim()
 {
+    printf("Coremap::FindVictim\n");
     unsigned physicalPage = penalizedPage;
-    printf("FindVictim: %d\n", physicalPage);
     unsigned virtualPage = mainMemoryStatus[penalizedPage].virtualPage;
     int pid = mainMemoryStatus[penalizedPage].pid;
+    #if COREMAP_DEBUG
+        printf("FindVictim: %d %d %d\n", physicalPage, virtualPage, pid);
+    #endif
     if(threadAddrSpace[pid] != NULL){
         threadAddrSpace[pid]->saveInSwap(virtualPage);
     }
-    if(penalizedPage == nitems - 1)
+    if((int)penalizedPage == nitems - 1)
         penalizedPage = 0;
     else
         penalizedPage++;
@@ -60,6 +68,7 @@ Coremap::FindVictim()
 int
 Coremap::getFromSwap(unsigned vpn, int pid, int phy)
 {
+    printf("Coremap::getFromSwap\n");
     if(phy == -1){
         phy = FindVictim();
     }
@@ -71,5 +80,6 @@ Coremap::getFromSwap(unsigned vpn, int pid, int phy)
 int
 Coremap::selectVictim()
 {
+    printf("Coremap::selectVictim\n");
     return 0;
 }

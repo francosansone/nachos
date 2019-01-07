@@ -258,6 +258,7 @@ void AddressSpace::RestoreState()
 {
     machine->pageTable     = pageTable;
     machine->pageTableSize = numPages;
+    DEBUG('t', "RestoreState");
 }
 
 #ifdef VMEM
@@ -270,13 +271,15 @@ AddressSpace::createSwapFile(int pid)
     name[3] = 'P';
     name[4] = '.';
     //support until 99 process
-    if(pid % 10 < 10){
+    printf("AddressSpace::createSwapFile\n");
+    if(pid % 10 > 10){
         char _pid = pid + '0';
         name[5] = _pid;
         name[6] = '\0';
     }
     else{
         int tens = pid / 10;
+        printf("%d, %c", tens, tens + '0');
         name[5] =  tens + '0';
         int unit = pid % 10;
         name[6] = unit + '0';

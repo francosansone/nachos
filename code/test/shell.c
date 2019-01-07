@@ -173,6 +173,7 @@ main(void)
           //WriteDebug("Join will coming\n", OUTPUT);
           Join(newProc);
         }
+        WriteDebug("Terminando el for", 1);
         //else{
           //WriteDebug("Not join\n", OUTPUT);
         //}
