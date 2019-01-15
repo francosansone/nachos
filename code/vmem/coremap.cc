@@ -28,9 +28,20 @@ Coremap::set(unsigned phy, unsigned vpn, int pid)
     memoryCell.virtualPage = vpn;
     memoryCell.pid = pid;
     mainMemoryStatus[phy] = memoryCell;
-    #if 0 //COREMAP_DEBUG
+    #if COREMAP_DEBUG
         printf("Coremap::set %u, %d\n", mainMemoryStatus[phy].virtualPage, mainMemoryStatus[phy].pid);
     #endif
+}
+
+int
+Coremap::getPidByPhysicalPage(unsigned ppn)
+{
+    if(ppn > NUM_PHYS_PAGES){
+        printf("**Direccion muy grande!!\n");
+        return -2;
+    }
+
+    return mainMemoryStatus[ppn].pid;
 }
 
 void
@@ -48,7 +59,7 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
 int
 Coremap::FindVictim()
 {
-    printf("Coremap::FindVictim\n");
+    //printf("Coremap::FindVictim\n");
     unsigned physicalPage = penalizedPage;
     unsigned virtualPage = mainMemoryStatus[penalizedPage].virtualPage;
     int pid = mainMemoryStatus[penalizedPage].pid;
@@ -56,7 +67,7 @@ Coremap::FindVictim()
         printf("FindVictim: %d %d %d\n", physicalPage, virtualPage, pid);
     #endif
     if(threadAddrSpace[pid] != NULL){
-        threadAddrSpace[pid]->saveInSwap(virtualPage);
+        threadAddrSpace[pid]->saveInSwap(virtualPage, pid);
     }
     if((int)penalizedPage == nitems - 1)
         penalizedPage = 0;
@@ -82,4 +93,13 @@ Coremap::selectVictim()
 {
     printf("Coremap::selectVictim\n");
     return 0;
+}
+
+void
+Coremap::Print() {
+    printf("virtual page | PID\n");
+    for(int i = 0; i < nitems; i++) {
+        printf("%u | %d\n", mainMemoryStatus[i].virtualPage,
+            mainMemoryStatus[i].pid);
+    }
 }

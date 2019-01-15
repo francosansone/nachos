@@ -53,7 +53,7 @@ public:
     void loadVPN(int vpn);
 
 #ifdef VMEM
-    void saveInSwap(int vpn);
+    void saveInSwap(int vpn, int pid);
     void loadFromSwap(unsigned vpn, unsigned phy);
     void createSwapFile(int pid);
 #endif

@@ -26,6 +26,8 @@ public:
     int FindVictim();
     int getFromSwap(unsigned vpn, int pid, int phy);
     int selectVictim();
+    int getPidByPhysicalPage(unsigned ppn);
+    void Print();
     //
 private:
     structCoremap *mainMemoryStatus;

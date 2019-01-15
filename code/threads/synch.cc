@@ -63,7 +63,7 @@ Semaphore::P()
     while (value == 0) {  // Semaphore not available.
         queue->Append(currentThread);  // So go to sleep.
         currentThread->Sleep();
-        printf("Here sleep!\n");
+        // printf("Here sleep!\n");
     }
     value--;  // Semaphore available, consume its value.
 

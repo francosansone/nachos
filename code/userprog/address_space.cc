@@ -21,6 +21,7 @@
 #include "bitmap.hh"
 #include "filesys/open_file.hh"
 #include "filesys/file_system.hh"
+#include "threads/thread.hh"
 
 #define BITS_OFFSET 7
 #define OR_OFFSET 127 //128 direcciones por pagina
@@ -205,6 +206,8 @@ AddressSpace::loadVPN(int vaddr)
             return;
         #endif
     }
+    // bitmap->Print();
+    // coremap->Print();
 }
 
 /// Deallocate an address space.
@@ -291,31 +294,71 @@ AddressSpace::createSwapFile(int pid)
 }
 
 void
-AddressSpace::saveInSwap(int vpn)
+AddressSpace::saveInSwap(int vpn, int pid)
 {
-    printf("saveInSwap\n");
+    Thread *t = getThread(pid);
+    if(t == NULL){
+        printf("Thread nulo");
+        return;
+    }
+    printf("saveInSwap %s\n", pageTable == NULL ? "True" : "False");
+    if(pageTable == NULL)
+        return;
     unsigned phy = pageTable[vpn].physicalPage;
-    if((int)phy < 0){
+    printf("saveInSwap %u %u\n", phy, PAGE_SIZE*NUM_PHYS_PAGES);
+    if((int)phy < 0 || phy >= PAGE_SIZE*NUM_PHYS_PAGES){
         printf("notSwap %d\n", phy);
         return;
     }
     unsigned physicalPageOffset = phy*PAGE_SIZE;
     int writeFrom = vpn*PAGE_SIZE;
     OpenFile *f = fileSystem -> Open(name);
+    printf("Write in file: %s", name);
+    if(name == NULL){
+        printf("name is null");
+        return;
+    }
     for(unsigned i = 0; i < PAGE_SIZE; i++){
         char c = 0;
         c = machine->mainMemory[physicalPageOffset + i];
         f->WriteAt(&c, 1, writeFrom + i);
     }
+    printf("llega hasta aca??\n");
+    printf("hola %d", t->getPid());
     #ifdef USE_TLB
-        if(this == currentThread->space){
-            for (int i = 0; i < TLB_SIZE; i++){
-                if (machine->tlb[i].valid && machine->tlb[i].virtualPage == vpn) {
-                    pageTable[vpn] = machine->tlb[i];
-                    machine->tlb[i].valid = false;
-                }
+        for (int i = 0; i < TLB_SIZE; i++){
+            printf("fff %s",
+             t->savedTlb[i].valid && t->savedTlb[i].virtualPage == vpn ? "true" : "false");
+            if (t->savedTlb[i].valid && t->savedTlb[i].virtualPage
+                == vpn) {
+                pageTable[vpn] = t->savedTlb[i];
+                t->savedTlb[i].valid = false;
             }
         }
+    #endif
+    #ifdef  USE_TLB_2
+        int pid = coremap -> getPidByPhysicalPage(phy);
+        printf("here we are?? %u\n", pid);
+        List <ThreadTable> *newthreads = new List <ThreadTable>;
+        Thread *t = NULL;
+        while(!threads-> IsEmpty()) {
+            ThreadTable temp = threads -> Remove();
+            if(temp.Pid == pid)
+                t = temp.thread;
+            newthreads -> Append(temp);
+        }
+        threads = newthreads;
+        // if(this == currentThread->space){
+            printf("here we are! %d\n", pid);
+            for (int i = 0; i < TLB_SIZE; i++){
+                printf("fff %s",
+                 t->savedTlb[i].valid && t->savedTlb[i].virtualPage == vpn ? "true" : "false");
+                if (t->savedTlb[i].valid && t->savedTlb[i].virtualPage == vpn) {
+                    pageTable[vpn] = t->savedTlb[i];
+                    t->savedTlb[i].valid = false;
+                }
+            }
+        //}
     #endif
     delete f;
     pageTable[vpn].physicalPage = -2;

@@ -25,7 +25,7 @@
 class TranslationEntry;
 class Puerto; //Le indico que existe una clase Puerto.
 static int ContPid = 0;
-
+// /List<ThreadTable> *threads;
 
 //Lista global de pares (thread, pid) creados
 List<ThreadTable> *threads = new List<ThreadTable>;

@@ -111,9 +111,6 @@ void addThread(ThreadTable t);
 void removeThread(SpaceId pid);
 Thread *getThread(SpaceId pid);
 
-
-
-
 /// The following class defines a “thread control block” -- which represents
 /// a single thread of execution.
 ///
@@ -149,12 +146,13 @@ private:
     OpenFileId cont;
 
     SpaceId Pid;
+
+public:
+
     #ifdef USE_TLB
     // For virtual memory purporses
         TranslationEntry savedTlb[TLB_SIZE];
     #endif
-
-public:
 
     /// Initialize a `Thread`.
     Thread(const char *debugName, bool ToJoin = false,
