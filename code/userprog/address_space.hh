@@ -52,7 +52,11 @@ public:
 
     void loadVPNFromBinary(int vpn);
 
+#ifdef VMEM
+    void createSwapFile(int pid);
+
     void loadFromSwap(int vpn);
+#endif
 
 private:
 
@@ -65,8 +69,7 @@ private:
     // for the demand load, I need to keep the binary open
     NoffHeader noffH;
     OpenFile *executable;
-
-
+    char name[7];
 };
 
 

@@ -32,6 +32,7 @@ StartProcess(const char *filename)
     currentThread->space = space;
     #ifdef VMEM
         coremap -> addAddrSpace(currentThread->getPid(), space);
+        currentThread->space->createSwapFile(currentThread->getPid());
     #endif
 
     #ifndef DEMAND_LOADING

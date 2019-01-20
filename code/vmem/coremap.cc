@@ -34,7 +34,7 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
         return;
     }
     threadAddrSpace[pid] = space;
-    DEBUG('t', "\n\n***Addres space added from pid %d***\n\n\n", pid);
+    printf("\n\n***Addres space added from pid %d***\n\n\n", pid);
 }
 
 int

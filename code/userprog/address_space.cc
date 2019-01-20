@@ -99,7 +99,7 @@ AddressSpace::AddressSpace(OpenFile *exec)
             pageTable[i].physicalPage = bitmap -> Find();
             DEBUG('a', "%d ", (int)pageTable[i].physicalPage);
             ASSERT((int)pageTable[i].physicalPage != -1);
-            #ifdef VMEM 
+            #ifdef VMEM
             coremap -> set(pageTable[i].physicalPage, i, currentThread->getPid());
             #endif
             pageTable[i].valid        = true;
@@ -186,9 +186,40 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     pageTable[vpn].use = false;
 }
 
+#ifdef VMEM
+void
+AddressSpace::createSwapFile(int pid)
+{
+    name[0] = 'S';
+    name[1] = 'W';
+    name[2] = 'A';
+    name[3] = 'P';
+    name[4] = '.';
+    //support until 99 process
+    printf("AddressSpace::createSwapFile\n");
+    if(pid % 10 > 10){
+        char _pid = pid + '0';
+        name[5] = _pid;
+        name[6] = '\0';
+    }
+    else{
+        int tens = pid / 10;
+        printf("%d, %c", tens, tens + '0');
+        name[5] =  tens + '0';
+        int unit = pid % 10;
+        name[6] = unit + '0';
+        name[7] = '\0';
+    }
+    DEBUG('t', "Swap file created %s\n", name);
+    fileSystem -> Create(name, NUM_PHYS_PAGES*PAGE_SIZE);
+    printf("created %s!!\n", name);
+}
+
 void
 AddressSpace::loadFromSwap(int vpn)
 {}
+
+#endif
 
 /// Deallocate an address space.
 ///

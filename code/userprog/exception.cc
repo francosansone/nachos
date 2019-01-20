@@ -222,6 +222,7 @@ ExceptionHandler(ExceptionType which)
                 SpaceId pid = t -> getPid();
                 #ifdef VMEM
                     coremap -> addAddrSpace(t->getPid(), t->space);
+                    t->space->createSwapFile(t->getPid());
                 #endif
                 DEBUG('q', "El hilo %d ha sido creado\n", pid);
                 //leer args a kernel
