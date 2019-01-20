@@ -145,6 +145,11 @@ AddressSpace::loadVPNFromBinary(int vaddr)
 {
     Segment segment;
     bool uninitData = false;
+    int vpn = vaddr / PAGE_SIZE;
+    int ppn = bitmap -> Find();
+    if(ppn == -1)
+        printf("Here we need swap\n");
+    pageTable[vpn].physicalPage = ppn;
     if(vaddr >= noffH.code.virtualAddr){
             segment = noffH.code;
         }
@@ -155,8 +160,6 @@ AddressSpace::loadVPNFromBinary(int vaddr)
         segment = noffH.uninitData;
         uninitData = true;
     }
-    int vpn = vaddr / PAGE_SIZE;
-    pageTable[vpn].physicalPage = bitmap -> Find();
     int readed = vpn*PAGE_SIZE;
     for (int i = 0;
             (i < (int)PAGE_SIZE)
@@ -174,6 +177,10 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     pageTable[vpn].dirty = false;
     pageTable[vpn].use = false;
 }
+
+void
+AddressSpace::loadFromSwap(int vpn)
+{}
 
 /// Deallocate an address space.
 ///

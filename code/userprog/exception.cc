@@ -244,6 +244,10 @@ ExceptionHandler(ExceptionType which)
             if((int)currentThread -> space -> getPageTable(vpn).physicalPage == -1)
                 currentThread -> space -> loadVPNFromBinary(vaddr);
         #endif
+        #ifdef VMEM
+            if((int)currentThread -> space -> getPageTable(vpn).physicalPage == -2)
+                currentThread -> space -> loadFromSwap(vaddr);
+        #endif
         #ifdef USE_TLB
             insertTLB(currentThread -> space -> getPageTable(vpn));
         #endif

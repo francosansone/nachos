@@ -52,6 +52,8 @@ public:
 
     void loadVPNFromBinary(int vpn);
 
+    void loadFromSwap(int vpn);
+
 private:
 
     /// Assume linear page table translation for now!
