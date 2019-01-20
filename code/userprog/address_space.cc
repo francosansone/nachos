@@ -215,7 +215,18 @@ AddressSpace::InitRegisters()
 ///
 /// For now, nothing!
 void AddressSpace::SaveState()
-{}
+{
+    // printf("Save State baby\n");
+    #ifdef USE_TLB
+        for(unsigned i = 0; i < TLB_SIZE; i++){
+            // printf("SaveUserState %u\n", i);
+            if(machine->tlb[i].valid){
+                pageTable[machine->tlb[i].virtualPage] = machine->tlb[i];
+                // tempSavedTlb[i] = machine->tlb[i];
+            }
+        }
+    #endif
+}
 
 /// On a context switch, restore the machine state so that this address space
 /// can run.
@@ -223,6 +234,13 @@ void AddressSpace::SaveState()
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState()
 {
+    // printf("Restore state baby\n");
     machine->pageTable     = pageTable;
     machine->pageTableSize = numPages;
+    #ifdef USE_TLB
+        for(unsigned i = 0; i < TLB_SIZE; i++){
+            // printf("SaveUserState %u\n", i);
+            machine->tlb[i].valid = false;
+        }
+    #endif
 }

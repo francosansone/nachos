@@ -417,27 +417,10 @@ Thread::FileClose()
 /// executing kernel code.  This routine saves the former.
 
 void
-Thread::flushTlb(TranslationEntry *tempSavedTlb){
-    #ifdef USE_TLB
-        for(unsigned i = 0; i < TLB_SIZE; i++){
-            // printf("SaveUserState %u\n", i);
-            tempSavedTlb[i] = machine->tlb[i];
-            machine->tlb[i].valid = false;
-        }
-    #endif
-
-};
-
-void
 Thread::SaveUserState()
 {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++)
         userRegisters[i] = machine->ReadRegister(i);
-
-    #ifdef USE_TLB
-        // Flush TLB
-        flushTlb(savedTlb);
-    #endif
 }
 
 /// Restore the CPU state of a user program on a context switch.
@@ -452,10 +435,6 @@ Thread::RestoreUserState()
         machine->WriteRegister(i, userRegisters[i]);
 
         DEBUG('t',"RestoreUserState\n");
-    #ifdef USE_TLB
-        for(unsigned i = 0; i < TLB_SIZE; i++)
-            machine->tlb[i] = savedTlb[i];
-    #endif
 }
 
 #endif
