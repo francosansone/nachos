@@ -99,6 +99,9 @@ AddressSpace::AddressSpace(OpenFile *exec)
             pageTable[i].physicalPage = bitmap -> Find();
             DEBUG('a', "%d ", (int)pageTable[i].physicalPage);
             ASSERT((int)pageTable[i].physicalPage != -1);
+            #ifdef VMEM 
+            coremap -> set(pageTable[i].physicalPage, i, currentThread->getPid());
+            #endif
             pageTable[i].valid        = true;
             pageTable[i].use          = false;
             pageTable[i].dirty        = false;
@@ -149,6 +152,11 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     int ppn = bitmap -> Find();
     if(ppn == -1)
         printf("Here we need swap\n");
+    else{
+        #ifdef VMEM
+            coremap -> set(ppn, vpn, currentThread->getPid());
+        #endif
+    }
     pageTable[vpn].physicalPage = ppn;
     if(vaddr >= noffH.code.virtualAddr){
             segment = noffH.code;
