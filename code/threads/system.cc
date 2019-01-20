@@ -43,6 +43,10 @@ SynchConsole *synchConsole;
 PostOffice *postOffice;
 #endif
 
+#ifdef VMEM
+Coremap *coremap;
+#endif
+
 // External definition, to allow us to take a pointer to this function.
 extern void Cleanup();
 
@@ -187,6 +191,9 @@ Initialize(int argc, char **argv)
 #ifdef NETWORK
     postOffice = new PostOffice(netname, rely, 10);
 #endif
+#ifdef VMEM
+    coremap = new Coremap(NUM_PHYS_PAGES);
+#endif
 }
 
 /// Nachos is halting.  De-allocate global data structures.
@@ -213,6 +220,10 @@ Cleanup()
 
 #ifdef FILESYS
     delete synchDisk;
+#endif
+
+#ifdef VMEM
+    delete coremap;
 #endif
 
     delete timer;

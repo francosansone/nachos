@@ -58,4 +58,9 @@ extern PostOffice *postOffice;
 extern SynchConsole *synchConsole;
 //#endif
 
+#ifdef VMEM
+#include "vmem/coremap.hh"
+extern Coremap *coremap;
+#endif
+
 #endif
