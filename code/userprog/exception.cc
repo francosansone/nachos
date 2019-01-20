@@ -220,6 +220,9 @@ ExceptionHandler(ExceptionType which)
                 Thread *t = new Thread(strdup(name), true); //ver como tratar args = NULL
                 t -> space = tas;
                 SpaceId pid = t -> getPid();
+                #ifdef VMEM
+                    coremap -> addAddrSpace(t->getPid(), t->space);
+                #endif
                 DEBUG('q', "El hilo %d ha sido creado\n", pid);
                 //leer args a kernel
                 char **args = SaveArgs(r5); // Leo los argumentos

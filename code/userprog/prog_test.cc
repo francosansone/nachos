@@ -30,8 +30,11 @@ StartProcess(const char *filename)
     }
     space = new AddressSpace(executable);
     currentThread->space = space;
+    #ifdef VMEM
+        coremap -> addAddrSpace(currentThread->getPid(), space);
+    #endif
 
-    #if 0
+    #ifndef DEMAND_LOADING
         delete executable;
     #endif
 
