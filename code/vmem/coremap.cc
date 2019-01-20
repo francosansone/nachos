@@ -1,4 +1,7 @@
 #include "coremap.hh"
+#define COREMAP_DEBUG 0
+
+static unsigned penalizedPage = 0;
 
 Coremap::Coremap(int nitems)
 {
@@ -23,7 +26,9 @@ Coremap::set(unsigned phy, unsigned vpn, int pid)
     memoryCell.virtualPage = vpn;
     memoryCell.pid = pid;
     ramStatus[phy] = memoryCell;
-    // printf("Coremap::set %u, %d\n", ramStatus[phy].virtualPage, ramStatus[phy].pid);
+    #if COREMAP_DEBUG
+        printf("Coremap::set %u, %d\n", ramStatus[phy].virtualPage, ramStatus[phy].pid);
+    #endif
 }
 
 void
@@ -34,13 +39,35 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
         return;
     }
     threadAddrSpace[pid] = space;
-    printf("\n\n***Addres space added from pid %d***\n\n\n", pid);
+    #if COREMAP_DEBUG
+        printf("\n\n***Addres space added from pid %d***\n\n\n", pid);
+    #endif
 }
 
 int
-Coremap::Find(int Pid)
+Coremap::FindVictim(int pid, unsigned vpn)
 {
-    return 0;
+    int victim = penalizedPage;
+    penalizedPage = penalizedPage < NUM_PHYS_PAGES - 1 ? penalizedPage + 1 : 0;
+    #if COREMAP_DEBUG
+        printf("Coremap::FindVictim %u\n",victim);
+    #endif
+    int penalizedPid = ramStatus[victim].pid;
+    if(penalizedPid == pid){
+        #if 1//COREMAP_DEBUG
+            printf("update TLB\n");
+        #endif
+        threadAddrSpace[pid]->invalidPageInTlb(victim, vpn);
+    }
+    if(threadAddrSpace[penalizedPid] != NULL){
+        #if COREMAP_DEBUG
+            printf("updatePageTable\n");
+        #endif
+        threadAddrSpace[penalizedPid]->saveInSwap(victim);
+        // threadAddrSpace[penalizedPid] -> updatePageTable(victim);
+    }
+    set(victim, vpn, pid);
+    return victim;
 }
 
 int

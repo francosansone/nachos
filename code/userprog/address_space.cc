@@ -23,6 +23,7 @@
 
 #define BITS_OFFSET 7
 #define OR_OFFSET 127 //128 direcciones por pagina
+#define ADDRESS_SPACE_DEBUG 0
 
 BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
@@ -150,8 +151,12 @@ AddressSpace::loadVPNFromBinary(int vaddr)
     bool uninitData = false;
     int vpn = vaddr / PAGE_SIZE;
     int ppn = bitmap -> Find();
-    if(ppn == -1)
-        printf("Here we need swap\n");
+    if(ppn == -1){
+        #if ADDRESS_SPACE_DEBUG
+            printf("Here we need swap\n");
+        #endif
+        ppn = coremap->FindVictim(currentThread->getPid(), vpn);
+    }
     else{
         #ifdef VMEM
             coremap -> set(ppn, vpn, currentThread->getPid());
@@ -196,7 +201,9 @@ AddressSpace::createSwapFile(int pid)
     name[3] = 'P';
     name[4] = '.';
     //support until 99 process
-    printf("AddressSpace::createSwapFile\n");
+    #if ADDRESS_SPACE_DEBUG
+        printf("AddressSpace::createSwapFile\n");
+    #endif
     if(pid % 10 > 10){
         char _pid = pid + '0';
         name[5] = _pid;
@@ -212,12 +219,105 @@ AddressSpace::createSwapFile(int pid)
     }
     DEBUG('t', "Swap file created %s\n", name);
     fileSystem -> Create(name, NUM_PHYS_PAGES*PAGE_SIZE);
-    printf("created %s!!\n", name);
+    #if ADDRESS_SPACE_DEBUG
+        printf("created %s!!\n", name);
+    #endif
 }
 
 void
-AddressSpace::loadFromSwap(int vpn)
-{}
+AddressSpace::loadFromSwap(unsigned vpn)
+{
+    #if 1//ADDRESS_SPACE_DEBUG
+        printf("\n\n *** loadFromSwap %s ** \n\n", name);
+    #endif
+    int readFrom = vpn*PAGE_SIZE;
+    OpenFile *f = fileSystem -> Open(name);
+    unsigned phy = bitmap -> Find();
+    if((int)phy == -1){
+        phy = coremap -> FindVictim(currentThread->getPid(), vpn);
+    }
+    else{
+        coremap->set(phy, vpn, currentThread->getPid());
+    }
+    unsigned physicalPageOffset = phy*PAGE_SIZE;
+    for(unsigned i = 0; i < PAGE_SIZE; i++){
+        char c = 0;
+        f->ReadAt(&c, 1, readFrom + i);
+        machine -> mainMemory[physicalPageOffset + i] = c;
+    }
+    delete f;
+    pageTable[vpn].physicalPage = phy;
+}
+
+void
+AddressSpace::saveInSwap(unsigned phy)
+{
+    #if ADDRESS_SPACE_DEBUG
+        printf("AddressSpace::saveInSwap %d\n", phy);
+    #endif
+    if(pageTable == NULL)
+        return;
+    if((int)phy < 0 || ((int)phy) >= PAGE_SIZE*NUM_PHYS_PAGES){
+        #if ADDRESS_SPACE_DEBUG
+            printf("notSwap %d\n", phy);
+        #endif
+        return;
+    }
+    unsigned physicalPageOffset = phy*PAGE_SIZE;
+    unsigned vpn;
+    for(unsigned i = 0; i < NUM_PHYS_PAGES; i++){
+        if(pageTable[i].physicalPage == phy){
+            vpn = i;
+            break;
+        }
+    }
+    #if ADDRESS_SPACE_DEBUG
+        printf("AddressSpace::saveInSwap %u\n", vpn);
+    #endif
+    int writeFrom = vpn*PAGE_SIZE;
+    OpenFile *f = fileSystem -> Open(name);
+    #if ADDRESS_SPACE_DEBUG
+        printf("Write in file: %s", name);
+    #endif
+    if(name == NULL){
+        printf("name is null");
+        return;
+    }
+    for(unsigned i = 0; i < PAGE_SIZE; i++){
+        char c = 0;
+        c = machine->mainMemory[physicalPageOffset + i];
+        f->WriteAt(&c, 1, writeFrom + i);
+    }
+    delete f;
+    updatePageTable(phy);
+}
+
+void
+AddressSpace::invalidPageInTlb(unsigned penalized, unsigned newVpn)
+{
+    #if ADDRESS_SPACE_DEBUG
+        printf("AddressSpace::invalidPageInTlb penalized: %d new: %d\n", penalized, newVpn);
+    #endif
+    #ifdef USE_TLB
+        for(int i = 0; i <  (int)TLB_SIZE; i++){
+            if(machine->tlb[i].physicalPage == penalized){
+                machine->tlb[i].virtualPage = newVpn;
+            }
+        }
+    #endif
+}
+
+void
+AddressSpace::updatePageTable(unsigned ppn)
+{
+    #if ADDRESS_SPACE_DEBUG
+        printf("AddressSpace::updatePageTable ppn: %u\n", ppn);
+    #endif
+    for (unsigned i = 0; i < numPages; i++) {
+        if(pageTable[i].physicalPage == ppn)
+            pageTable[i].physicalPage = -2;
+    }
+}
 
 #endif
 
@@ -262,7 +362,6 @@ AddressSpace::InitRegisters()
 /// For now, nothing!
 void AddressSpace::SaveState()
 {
-    // printf("Save State baby\n");
     #ifdef USE_TLB
         for(unsigned i = 0; i < TLB_SIZE; i++){
             // printf("SaveUserState %u\n", i);
@@ -280,7 +379,6 @@ void AddressSpace::SaveState()
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState()
 {
-    // printf("Restore state baby\n");
     machine->pageTable     = pageTable;
     machine->pageTableSize = numPages;
     #ifdef USE_TLB

@@ -55,7 +55,13 @@ public:
 #ifdef VMEM
     void createSwapFile(int pid);
 
-    void loadFromSwap(int vpn);
+    void loadFromSwap(unsigned vpn);
+
+    void saveInSwap(unsigned ppn);
+
+    void updatePageTable(unsigned ppn);
+
+    void invalidPageInTlb(unsigned penalized, unsigned newVpn);
 #endif
 
 private:
