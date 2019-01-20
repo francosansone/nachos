@@ -3,8 +3,9 @@
 
 static unsigned penalizedPage = 0;
 
-Coremap::Coremap(int nitems)
+Coremap::Coremap(int _nitems)
 {
+    this -> nitems = _nitems;
     ramStatus = new structCoremap[nitems];
     structCoremap memoryCell;
     memoryCell.virtualPage = -1;
@@ -47,8 +48,9 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
 int
 Coremap::FindVictim(int pid, unsigned vpn)
 {
-    int victim = penalizedPage;
-    penalizedPage = penalizedPage < NUM_PHYS_PAGES - 1 ? penalizedPage + 1 : 0;
+    printf("FindVictim %d\n", Random() % nitems);
+    int victim = Random() % nitems;
+    // penalizedPage = penalizedPage < NUM_PHYS_PAGES - 1 ? penalizedPage + 1 : 0;
     #if COREMAP_DEBUG
         printf("Coremap::FindVictim %u\n",victim);
     #endif

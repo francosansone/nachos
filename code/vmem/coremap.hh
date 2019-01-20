@@ -27,6 +27,7 @@ public:
     int selectVictim();
     //
 private:
+    int nitems;
     structCoremap *ramStatus;
     AddressSpace *threadAddrSpace[MAX_PROCS];
 };
