@@ -7,8 +7,10 @@ int main(){
     Create("Holanda.txt");
     Write("Hola Mundo", 10, 1);
     int pid = Exec("filetest", args);
+    int pid1 = Exec("sort", args);
     int ret = Join(pid);
+    int ret1 = Join(pid1);
     Create("Holan.txt");
-    Halt();
+//    Halt();
     Exit(0);
 }    
