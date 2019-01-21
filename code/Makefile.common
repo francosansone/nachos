@@ -115,9 +115,12 @@ USERPROG_O = address_space.o \
              translate.o     \
              synch_console.o
 
-VMEM_H = ../vmem/coremap.hh
-VMEM_C = ../vmem/coremap.cc
-VMEM_O = coremap.o
+VMEM_H = ../vmem/coremap.hh  \
+         ../vmem/lru.hh
+VMEM_C = ../vmem/coremap.cc  \
+         ../vmem/lru.cc
+VMEM_O = coremap.o           \
+         lru.o
 
 FILESYS_H = ../filesys/directory.hh   \
             ../filesys/file_header.hh \
