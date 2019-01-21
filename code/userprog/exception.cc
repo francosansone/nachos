@@ -250,7 +250,7 @@ ExceptionHandler(ExceptionType which)
         #endif
         #ifdef VMEM
             if((int)currentThread -> space -> getPageTable(vpn).physicalPage == -2){
-                printf("We Call loadFromSwap vaddr: %u, pid: %d", vaddr, currentThread->getPid());
+                // printf("We Call loadFromSwap vaddr: %u, pid: %d", vaddr, currentThread->getPid());
                 currentThread -> space -> loadFromSwap(vpn);
             }
         #endif
