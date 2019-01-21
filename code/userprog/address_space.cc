@@ -155,7 +155,9 @@ AddressSpace::loadVPNFromBinary(int vaddr)
         #if ADDRESS_SPACE_DEBUG
             printf("Here we need swap\n");
         #endif
-        ppn = coremap->FindVictim(currentThread->getPid(), vpn);
+        #ifdef VMEM
+            ppn = coremap->FindVictim(currentThread->getPid(), vpn);
+        #endif
     }
     else{
         #ifdef VMEM
@@ -228,7 +230,7 @@ void
 AddressSpace::loadFromSwap(unsigned vpn)
 {
     #if 1//ADDRESS_SPACE_DEBUG
-        printf("\n\n *** loadFromSwap %s ** \n\n", name);
+        printf("*** loadFromSwap %s ** \n", name);
     #endif
     int readFrom = vpn*PAGE_SIZE;
     OpenFile *f = fileSystem -> Open(name);
