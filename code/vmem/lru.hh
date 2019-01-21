@@ -17,7 +17,7 @@ public:
     void addAddrSpace(int pid, AddressSpace *space);
     int FindVictim(int Pid, unsigned vpn);
     int selectVictim();
-    //
+
 private:
     int nitems;
     Coremap *coremap;

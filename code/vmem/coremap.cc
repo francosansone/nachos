@@ -1,10 +1,11 @@
 #include "coremap.hh"
 #define COREMAP_DEBUG 0
 
-static unsigned penalizedPage = 0;
-
 Coremap::Coremap(int _nitems)
 {
+    #if COREMAP_DEBUG
+        printf("Coremap::Coremap %d\n", _nitems);
+    #endif
     this -> nitems = _nitems;
     ramStatus = new structCoremap[nitems];
     structCoremap memoryCell;
@@ -48,18 +49,27 @@ Coremap::addAddrSpace(int pid, AddressSpace *space)
 int
 Coremap::FindVictim(int pid, unsigned vpn)
 {
-    printf("FindVictim %d\n", Random() % nitems);
+    #if COREMAP_DEBUG
+        printf("FindVictim %d\n", Random() % nitems);
+    #endif
     int victim = Random() % nitems;
-    // penalizedPage = penalizedPage < NUM_PHYS_PAGES - 1 ? penalizedPage + 1 : 0;
     #if COREMAP_DEBUG
         printf("Coremap::FindVictim %u\n",victim);
     #endif
+
+    updateMemoryStatus(pid, victim, vpn);
+    return victim;
+}
+
+void
+Coremap::updateMemoryStatus(int currentPid, int victim, unsigned vpn)
+{
     int penalizedPid = ramStatus[victim].pid;
-    if(penalizedPid == pid){
+    if(penalizedPid == currentPid){
         #if 1//COREMAP_DEBUG
             printf("update TLB\n");
         #endif
-        threadAddrSpace[pid]->invalidPageInTlb(victim, vpn);
+        threadAddrSpace[currentPid]->invalidPageInTlb(victim, vpn);
     }
     if(threadAddrSpace[penalizedPid] != NULL){
         #if COREMAP_DEBUG
@@ -68,8 +78,7 @@ Coremap::FindVictim(int pid, unsigned vpn)
         threadAddrSpace[penalizedPid]->saveInSwap(victim);
         // threadAddrSpace[penalizedPid] -> updatePageTable(victim);
     }
-    set(victim, vpn, pid);
-    return victim;
+    set(victim, vpn, currentPid);
 }
 
 int
