@@ -44,7 +44,11 @@ PostOffice *postOffice;
 #endif
 
 #ifdef VMEM
+#ifdef LRU
+Lru *coremap;
+#else
 Coremap *coremap;
+#endif
 #endif
 
 // External definition, to allow us to take a pointer to this function.
@@ -192,7 +196,11 @@ Initialize(int argc, char **argv)
     postOffice = new PostOffice(netname, rely, 10);
 #endif
 #ifdef VMEM
+#ifdef LRU
+    coremap = new Lru(NUM_PHYS_PAGES);
+#else
     coremap = new Coremap(NUM_PHYS_PAGES);
+#endif
 #endif
 }
 

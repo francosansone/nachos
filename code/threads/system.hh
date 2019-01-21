@@ -60,7 +60,12 @@ extern SynchConsole *synchConsole;
 
 #ifdef VMEM
 #include "vmem/coremap.hh"
+#ifdef LRU
+#include "vmem/lru.hh"
+extern Lru *coremap;
+#else
 extern Coremap *coremap;
+#endif
 #endif
 
 #endif
