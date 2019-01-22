@@ -23,7 +23,7 @@
 
 #define BITS_OFFSET 7
 #define OR_OFFSET 127 //128 direcciones por pagina
-#define ADDRESS_SPACE_DEBUG 0
+#define ADDRESS_SPACE_DEBUG 1
 
 BitMap *bitmap = new BitMap(NUM_PHYS_PAGES); //cantidad de paginas
 
@@ -229,7 +229,7 @@ AddressSpace::createSwapFile(int pid)
 void
 AddressSpace::loadFromSwap(unsigned vpn)
 {
-    #if 1//ADDRESS_SPACE_DEBUG
+    #if ADDRESS_SPACE_DEBUG
         printf("*** loadFromSwap %s ** \n", name);
     #endif
     int readFrom = vpn*PAGE_SIZE;
@@ -255,11 +255,11 @@ void
 AddressSpace::saveInSwap(unsigned phy)
 {
     #if ADDRESS_SPACE_DEBUG
-        printf("AddressSpace::saveInSwap %d\n", phy);
+        printf("AddressSpace::saveInSwap %u\n", phy);
     #endif
     if(pageTable == NULL)
         return;
-    if((int)phy < 0 || ((int)phy) >= PAGE_SIZE*NUM_PHYS_PAGES){
+    if((int)phy < 0 || (unsigned)phy >= PAGE_SIZE*NUM_PHYS_PAGES){
         #if ADDRESS_SPACE_DEBUG
             printf("notSwap %d\n", phy);
         #endif
