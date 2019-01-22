@@ -203,6 +203,11 @@ ExceptionHandler(ExceptionType which)
             case SC_Join: {
                 int ret;
                 Thread *t = getThread(r4);
+                if(t == NULL){
+                    DEBUG('t',"Thread does not exist\n");
+                    IncPC();
+                    break;
+                }
                 DEBUG('q', "Haciendo join sobre el hilo %d, thread=%p\n", r4, t);
                 t -> Join(&ret); //obtengo el hilo y hago el join
                 machine -> WriteRegister(2, ret);
@@ -213,9 +218,13 @@ ExceptionHandler(ExceptionType which)
 
             case SC_Exec: {
                 DEBUG('t', "SYSCALL EXEC\n");
-                //printf("%d %d\n\n", r4, r5);
                 ReadStringFromUser(r4, name, 12);
                 OpenFile *f = fileSystem -> Open(name);
+                if(f == NULL){
+                    printf("File %s does not exist\n", name);
+                    IncPC();
+                    break;
+                }
                 AddressSpace *tas = new AddressSpace(f);
                 Thread *t = new Thread(strdup(name), true); //ver como tratar args = NULL
                 t -> space = tas;
