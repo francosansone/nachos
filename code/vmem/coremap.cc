@@ -80,9 +80,3 @@ Coremap::updateMemoryStatus(int currentPid, int victim, unsigned vpn)
     }
     set(victim, vpn, currentPid);
 }
-
-int
-Coremap::selectVictim()
-{
-    return 0;
-}

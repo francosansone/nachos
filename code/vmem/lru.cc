@@ -54,9 +54,3 @@ Lru::FindVictim(int pid, unsigned vpn)
     #endif
     return victim;
 }
-
-int
-Lru::selectVictim()
-{
-    return 0;
-}
